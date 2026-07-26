@@ -1,7 +1,6 @@
 import { createLegacySession, searchLegacyPlatform, closeLegacySession } from "./lib/legacyPlatform.js";
 import { getStoreByName, upsertProduct, upsertStoreProduct, insertPriceHistory } from "./lib/db.js";
-
-const SEED_KEYWORDS = ["牛乳", "卵", "食パン", "豚肉", "キャベツ"];
+import { KEYWORD_CATEGORY, SEED_KEYWORDS } from "./lib/categories.js";
 
 const SITES = {
   marui: {
@@ -40,7 +39,7 @@ async function run(siteKey) {
         const product = await upsertProduct({
           janCode: item.janCode,
           name: item.name,
-          category: null,
+          category: KEYWORD_CATEGORY[keyword],
         });
         await upsertStoreProduct({
           storeId: store.id,

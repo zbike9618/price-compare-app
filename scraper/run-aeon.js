@@ -1,8 +1,6 @@
 import { searchAeon } from "./lib/aeon.js";
 import { getStoreByName, upsertProduct, upsertStoreProduct, insertPriceHistory } from "./lib/db.js";
-
-// MVP用の初期検索キーワード（後日カテゴリ一覧クロールに置き換え予定）
-const SEED_KEYWORDS = ["牛乳", "卵", "食パン", "豚肉", "キャベツ"];
+import { KEYWORD_CATEGORY, SEED_KEYWORDS } from "./lib/categories.js";
 
 async function main() {
   const store = await getStoreByName("イオンネットスーパー イオン岡山店");
@@ -19,7 +17,7 @@ async function main() {
       const product = await upsertProduct({
         janCode: item.janCode,
         name: item.name,
-        category: null,
+        category: KEYWORD_CATEGORY[keyword],
       });
       await upsertStoreProduct({
         storeId: store.id,

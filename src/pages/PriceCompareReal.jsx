@@ -1,5 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, Store, ShoppingCart, List, X, Crown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Search, Store, ShoppingCart, List, MapPin, X, Crown } from "lucide-react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 const SUPABASE_URL = "http://192.168.11.114:8000";
 const SUPABASE_ANON_KEY =
@@ -30,10 +42,11 @@ export default function PriceCompareReal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stores, setStores] = useState([]);
-  const [products, setProducts] = useState([]); // { id, name, janCode, prices: [{storeId, storeName, price}] }
-  const [view, setView] = useState("cart"); // "cart" | "list"
+  const [products, setProducts] = useState([]); // { id, name, janCode, category, prices: [{storeId, storeName, price}] }
+  const [view, setView] = useState("cart"); // "cart" | "list" | "map"
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("priceAsc");
+  const [activeCategory, setActiveCategory] = useState(null);
   const [cart, setCart] = useState(() => new Set());
   const [cartSearch, setCartSearch] = useState("");
 
@@ -41,8 +54,8 @@ export default function PriceCompareReal() {
     (async () => {
       try {
         const [storesData, productsData, priceHistoryData] = await Promise.all([
-          supabaseGet("stores?select=id,name&is_active=eq.true"),
-          supabaseGet("products?select=id,name,jan_code"),
+          supabaseGet("stores?select=id,name,lat,lng&is_active=eq.true"),
+          supabaseGet("products?select=id,name,jan_code,category"),
           supabaseGet("price_history?select=store_id,product_id,price,scraped_at&order=scraped_at.desc"),
         ]);
 
@@ -68,6 +81,7 @@ export default function PriceCompareReal() {
             id: p.id,
             name: p.name,
             janCode: p.jan_code,
+            category: p.category,
             prices: (priceByProduct.get(p.id) ?? []).sort((a, b) => a.price - b.price),
           }))
           .filter((p) => p.prices.length > 0);
@@ -82,8 +96,15 @@ export default function PriceCompareReal() {
     })();
   }, []);
 
+  const categories = useMemo(() => {
+    const set = new Set(products.map((p) => p.category).filter(Boolean));
+    return [...set].sort((a, b) => a.localeCompare(b, "ja"));
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
-    let list = products.filter((p) => p.name.includes(query));
+    let list = products.filter(
+      (p) => p.name.includes(query) && (activeCategory === null || p.category === activeCategory)
+    );
     list = [...list].sort((a, b) => {
       const aMin = a.prices[0]?.price ?? Infinity;
       const bMin = b.prices[0]?.price ?? Infinity;
@@ -93,7 +114,7 @@ export default function PriceCompareReal() {
       return 0;
     });
     return list;
-  }, [products, query, sortBy]);
+  }, [products, query, activeCategory, sortBy]);
 
   const toggleCart = (id) => {
     setCart((prev) => {
@@ -146,6 +167,7 @@ export default function PriceCompareReal() {
         button, select { font-family: inherit; cursor: pointer; }
         input:focus, select:focus { outline: none; }
         .tab-btn:hover { border-color: #2F6B4A; }
+        .cat-btn:hover { border-color: #2F6B4A; }
       `}</style>
 
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
@@ -178,42 +200,9 @@ export default function PriceCompareReal() {
           {!loading && !error && (
             <>
               <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                <button
-                  type="button"
-                  className="tab-btn"
-                  onClick={() => setView("cart")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    border: view === "cart" ? "1px solid #2F6B4A" : "1px solid #D9DED2",
-                    background: view === "cart" ? "#2F6B4A" : "#fff",
-                    color: view === "cart" ? "#fff" : "#202B22",
-                    fontSize: 13,
-                  }}
-                >
-                  <ShoppingCart size={14} /> 買い物リスト比較
-                </button>
-                <button
-                  type="button"
-                  className="tab-btn"
-                  onClick={() => setView("list")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    border: view === "list" ? "1px solid #2F6B4A" : "1px solid #D9DED2",
-                    background: view === "list" ? "#2F6B4A" : "#fff",
-                    color: view === "list" ? "#fff" : "#202B22",
-                    fontSize: 13,
-                  }}
-                >
-                  <List size={14} /> 最安値一覧
-                </button>
+                <TabButton active={view === "cart"} onClick={() => setView("cart")} icon={<ShoppingCart size={14} />} label="買い物リスト比較" />
+                <TabButton active={view === "list"} onClick={() => setView("list")} icon={<List size={14} />} label="最安値一覧" />
+                <TabButton active={view === "map"} onClick={() => setView("map")} icon={<MapPin size={14} />} label="地図ビュー" />
               </div>
 
               {view === "cart" && (
@@ -233,15 +222,84 @@ export default function PriceCompareReal() {
                   setQuery={setQuery}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
+                  categories={categories}
+                  activeCategory={activeCategory}
+                  setActiveCategory={setActiveCategory}
                   filteredProducts={filteredProducts}
                   cart={cart}
                   toggleCart={toggleCart}
                 />
               )}
+
+              {view === "map" && <MapView stores={stores} />}
             </>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, icon, label }) {
+  return (
+    <button
+      type="button"
+      className="tab-btn"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "8px 14px",
+        borderRadius: 999,
+        border: active ? "1px solid #2F6B4A" : "1px solid #D9DED2",
+        background: active ? "#2F6B4A" : "#fff",
+        color: active ? "#fff" : "#202B22",
+        fontSize: 13,
+      }}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function MapView({ stores }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    const withCoords = stores.filter((s) => s.lat != null && s.lng != null);
+    if (!containerRef.current || withCoords.length === 0) return;
+
+    if (!mapRef.current) {
+      mapRef.current = L.map(containerRef.current);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(mapRef.current);
+    }
+
+    const map = mapRef.current;
+    const markers = withCoords.map((s) => L.marker([s.lat, s.lng]).addTo(map).bindPopup(s.name));
+    const bounds = L.latLngBounds(withCoords.map((s) => [s.lat, s.lng]));
+    map.fitBounds(bounds.pad(0.3));
+
+    return () => {
+      markers.forEach((m) => map.removeLayer(m));
+    };
+  }, [stores]);
+
+  const withCoords = stores.filter((s) => s.lat != null && s.lng != null);
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden" }}>
+      {withCoords.length === 0 ? (
+        <div style={{ padding: 24, textAlign: "center", color: "#8A9285", fontSize: 13 }}>
+          座標データのある店舗がありません
+        </div>
+      ) : (
+        <div ref={containerRef} style={{ height: 420, width: "100%" }} />
+      )}
     </div>
   );
 }
@@ -387,7 +445,18 @@ function CartView({ cartProducts, cartSearch, setCartSearch, cartSearchResults, 
   );
 }
 
-function ListView({ query, setQuery, sortBy, setSortBy, filteredProducts, cart, toggleCart }) {
+function ListView({
+  query,
+  setQuery,
+  sortBy,
+  setSortBy,
+  categories,
+  activeCategory,
+  setActiveCategory,
+  filteredProducts,
+  cart,
+  toggleCart,
+}) {
   return (
     <>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -428,6 +497,42 @@ function ListView({ query, setQuery, sortBy, setSortBy, filteredProducts, cart, 
             </option>
           ))}
         </select>
+      </div>
+
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        <button
+          type="button"
+          className="cat-btn"
+          onClick={() => setActiveCategory(null)}
+          style={{
+            padding: "5px 12px",
+            borderRadius: 999,
+            border: activeCategory === null ? "1px solid #2F6B4A" : "1px solid #D9DED2",
+            background: activeCategory === null ? "#2F6B4A" : "#fff",
+            color: activeCategory === null ? "#fff" : "#202B22",
+            fontSize: 12,
+          }}
+        >
+          すべて
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c}
+            type="button"
+            className="cat-btn"
+            onClick={() => setActiveCategory(c)}
+            style={{
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: activeCategory === c ? "1px solid #2F6B4A" : "1px solid #D9DED2",
+              background: activeCategory === c ? "#2F6B4A" : "#fff",
+              color: activeCategory === c ? "#fff" : "#202B22",
+              fontSize: 12,
+            }}
+          >
+            {c}
+          </button>
+        ))}
       </div>
 
       <p style={{ fontSize: 12, color: "#8A9285", margin: "0 0 8px" }}>{filteredProducts.length}件表示</p>
