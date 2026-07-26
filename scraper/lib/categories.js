@@ -49,3 +49,27 @@ export const KEYWORD_CATEGORY = {
 };
 
 export const SEED_KEYWORDS = Object.keys(KEYWORD_CATEGORY);
+
+// 検索結果に紛れ込む無関係な加工食品・菓子を除外するための語リスト。
+// 例: 「みかん」検索で「みかん味のガム」がヒットしてしまい、物の名前グルーピングの精度を落とすのを防ぐ
+const NOISE_WORDS = [
+  "ガム", "ゼリー", "キャンディ", "飴", "あめ", "グミ", "アイス", "ジュース", "ドリンク",
+  "シロップ", "ソース", "ドレッシング", "味", "菓子", "クッキー", "チョコ", "スナック",
+  "ふりかけ", "サワー", "チューハイ", "ビール", "日本酒", "梅酒", "リキュール", "カクテル",
+  "ジャム", "ようかん", "まんじゅう", "饅頭", "せんべい", "おかき", "ポップコーン",
+  "ゼロカロリー", "kcal", "サプリ", "入浴剤", "芳香剤", "洗剤",
+  "えびせん", "サンダー", "ハーゲンダッツ", "パイ", "ケーキ", "プリン", "たい焼き",
+  "ポテトチップ", "柿の種", "うまい棒",
+];
+
+// パン・穀物や調味料自体を指すキーワードは、その語自体が主役の加工食品なので除外フィルタの対象外にする
+const NOISE_FILTER_EXEMPT_KEYWORDS = new Set([
+  "食パン", "ロールパン", "うどん", "パスタ",
+  "醤油", "味噌", "砂糖", "食用油",
+  "ティッシュ",
+]);
+
+export function isNoiseProduct(keyword, productName) {
+  if (NOISE_FILTER_EXEMPT_KEYWORDS.has(keyword)) return false;
+  return NOISE_WORDS.some((w) => productName.includes(w));
+}

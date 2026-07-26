@@ -1,6 +1,6 @@
 import { searchAeon } from "./lib/aeon.js";
 import { getStoreByName, upsertProduct, upsertStoreProduct, insertPriceHistory } from "./lib/db.js";
-import { KEYWORD_CATEGORY, SEED_KEYWORDS } from "./lib/categories.js";
+import { KEYWORD_CATEGORY, SEED_KEYWORDS, isNoiseProduct } from "./lib/categories.js";
 
 async function main() {
   const store = await getStoreByName("イオンネットスーパー イオン岡山店");
@@ -13,6 +13,7 @@ async function main() {
 
     for (const item of items) {
       if (!item.janCode || item.taxPrice == null) continue;
+      if (isNoiseProduct(keyword, item.name)) continue;
 
       const product = await upsertProduct({
         janCode: item.janCode,

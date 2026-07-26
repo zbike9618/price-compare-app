@@ -1,6 +1,6 @@
 import { createLegacySession, searchLegacyPlatform, closeLegacySession } from "./lib/legacyPlatform.js";
 import { getStoreByName, upsertProduct, upsertStoreProduct, insertPriceHistory } from "./lib/db.js";
-import { KEYWORD_CATEGORY, SEED_KEYWORDS } from "./lib/categories.js";
+import { KEYWORD_CATEGORY, SEED_KEYWORDS, isNoiseProduct } from "./lib/categories.js";
 
 const SITES = {
   marui: {
@@ -35,6 +35,7 @@ async function run(siteKey) {
 
       for (const item of items) {
         if (!item.janCode || !item.name || item.taxPrice == null) continue;
+        if (isNoiseProduct(keyword, item.name)) continue;
 
         const product = await upsertProduct({
           janCode: item.janCode,
