@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Store, ShoppingCart, List, MapPin, X, Crown } from "lucide-react";
+import { Search, Store, ShoppingCart, List, MapPin, X, Crown, Bookmark, Trash2 } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -49,6 +50,7 @@ export default function PriceCompareReal() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [cart, setCart] = useState(() => new Set());
   const [cartSearch, setCartSearch] = useState("");
+  const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
 
   useEffect(() => {
     (async () => {
@@ -126,6 +128,37 @@ export default function PriceCompareReal() {
   };
 
   const cartProducts = useMemo(() => products.filter((p) => cart.has(p.id)), [products, cart]);
+
+  const builtinPresets = useMemo(() => {
+    return BUILTIN_PRESETS.map((preset) => {
+      const matched = preset.keywords
+        .map((kw) => products.find((p) => p.name.includes(kw)))
+        .filter(Boolean);
+      return { ...preset, productIds: matched.map((p) => p.id) };
+    }).filter((preset) => preset.productIds.length > 0);
+  }, [products]);
+
+  const applyPresetIds = (ids) => {
+    setCart((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const applyCustomPreset = (preset) => {
+    const ids = products.filter((p) => preset.janCodes.includes(p.janCode)).map((p) => p.id);
+    applyPresetIds(ids);
+  };
+
+  const handleSaveCurrentAsPreset = (name) => {
+    const janCodes = cartProducts.map((p) => p.janCode);
+    setCustomPresets(saveCustomPreset(name, janCodes));
+  };
+
+  const handleDeleteCustomPreset = (id) => {
+    setCustomPresets(deleteCustomPreset(id));
+  };
 
   const cartSearchResults = useMemo(() => {
     if (!cartSearch.trim()) return [];
@@ -213,6 +246,12 @@ export default function PriceCompareReal() {
                   cartSearchResults={cartSearchResults}
                   toggleCart={toggleCart}
                   cartStoreTotals={cartStoreTotals}
+                  builtinPresets={builtinPresets}
+                  customPresets={customPresets}
+                  onApplyPresetIds={applyPresetIds}
+                  onApplyCustomPreset={applyCustomPreset}
+                  onSavePreset={handleSaveCurrentAsPreset}
+                  onDeletePreset={handleDeleteCustomPreset}
                 />
               )}
 
@@ -304,9 +343,83 @@ function MapView({ stores }) {
   );
 }
 
-function CartView({ cartProducts, cartSearch, setCartSearch, cartSearchResults, toggleCart, cartStoreTotals }) {
+function CartView({
+  cartProducts,
+  cartSearch,
+  setCartSearch,
+  cartSearchResults,
+  toggleCart,
+  cartStoreTotals,
+  builtinPresets,
+  customPresets,
+  onApplyPresetIds,
+  onApplyCustomPreset,
+  onSavePreset,
+  onDeletePreset,
+}) {
+  const [presetNameInput, setPresetNameInput] = useState("");
+  const [showSaveForm, setShowSaveForm] = useState(false);
+
   return (
     <>
+      {(builtinPresets.length > 0 || customPresets.length > 0) && (
+        <div style={{ marginBottom: 12 }}>
+          <p style={{ fontSize: 11, color: "#8A9285", margin: "0 0 6px" }}>プリセットから追加</p>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {builtinPresets.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => onApplyPresetIds(preset.productIds)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 12px",
+                  borderRadius: 999,
+                  border: "1px solid #D9DED2",
+                  background: "#fff",
+                  fontSize: 12,
+                }}
+              >
+                <Bookmark size={12} /> {preset.name}
+              </button>
+            ))}
+            {customPresets.map((preset) => (
+              <span
+                key={preset.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 6px 5px 12px",
+                  borderRadius: 999,
+                  border: "1px solid #2F6B4A",
+                  background: "#fff",
+                  fontSize: 12,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onApplyCustomPreset(preset)}
+                  style={{ border: "none", background: "transparent", padding: 0, color: "#2F6B4A" }}
+                >
+                  {preset.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeletePreset(preset.id)}
+                  style={{ border: "none", background: "transparent", padding: 2, color: "#8A9285" }}
+                  aria-label="プリセットを削除"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div
         style={{
           position: "relative",
@@ -412,6 +525,60 @@ function CartView({ cartProducts, cartSearch, setCartSearch, cartSearchResults, 
               </div>
             ))}
           </div>
+
+          {showSaveForm ? (
+            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+              <input
+                value={presetNameInput}
+                onChange={(e) => setPresetNameInput(e.target.value)}
+                placeholder="プリセット名（例: いつもの買い物）"
+                style={{
+                  flex: 1,
+                  border: "1px solid #D9DED2",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  fontSize: 13,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!presetNameInput.trim()) return;
+                  onSavePreset(presetNameInput.trim());
+                  setPresetNameInput("");
+                  setShowSaveForm(false);
+                }}
+                style={{
+                  border: "1px solid #2F6B4A",
+                  borderRadius: 10,
+                  padding: "0 14px",
+                  background: "#2F6B4A",
+                  color: "#fff",
+                  fontSize: 13,
+                }}
+              >
+                保存
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowSaveForm(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                border: "1px solid #D9DED2",
+                borderRadius: 10,
+                padding: "8px 12px",
+                background: "#fff",
+                fontSize: 13,
+                marginBottom: 12,
+              }}
+            >
+              <Bookmark size={14} /> このリストをプリセット保存
+            </button>
+          )}
 
           <div style={{ background: "#202B22", borderRadius: 16, overflow: "hidden" }}>
             {cartStoreTotals.map((s, i) => (
