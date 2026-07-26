@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Store, ShoppingCart, List, MapPin, X, Crown, Bookmark, Trash2 } from "lucide-react";
+import { Search, Store, ShoppingCart, List, MapPin, X, Crown, Bookmark, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -36,14 +36,18 @@ function yen(n) {
 const SORT_OPTIONS = [
   { id: "priceAsc", label: "最安値が安い順" },
   { id: "priceDesc", label: "最安値が高い順" },
-  { id: "name", label: "商品名順" },
+  { id: "name", label: "名前順" },
 ];
+
+// カート項目のキー種別: "g:<genericName>"（物の名前・最安自動選択） / "p:<productId>"（特定商品指定）
+const genericKey = (genericName) => `g:${genericName}`;
+const productKey = (id) => `p:${id}`;
 
 export default function PriceCompareReal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stores, setStores] = useState([]);
-  const [products, setProducts] = useState([]); // { id, name, janCode, category, prices: [{storeId, storeName, price}] }
+  const [products, setProducts] = useState([]); // { id, name, janCode, category, genericName, prices: [{storeId, storeName, price}] }
   const [view, setView] = useState("cart"); // "cart" | "list" | "map"
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("priceAsc");
@@ -57,7 +61,7 @@ export default function PriceCompareReal() {
       try {
         const [storesData, productsData, priceHistoryData] = await Promise.all([
           supabaseGet("stores?select=id,name,lat,lng&is_active=eq.true"),
-          supabaseGet("products?select=id,name,jan_code,category"),
+          supabaseGet("products?select=id,name,jan_code,category,generic_name"),
           supabaseGet("price_history?select=store_id,product_id,price,scraped_at&order=scraped_at.desc"),
         ]);
 
@@ -84,6 +88,7 @@ export default function PriceCompareReal() {
             name: p.name,
             janCode: p.jan_code,
             category: p.category,
+            genericName: p.generic_name || p.name,
             prices: (priceByProduct.get(p.id) ?? []).sort((a, b) => a.price - b.price),
           }))
           .filter((p) => p.prices.length > 0);
@@ -98,61 +103,131 @@ export default function PriceCompareReal() {
     })();
   }, []);
 
+  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+
   const categories = useMemo(() => {
     const set = new Set(products.map((p) => p.category).filter(Boolean));
     return [...set].sort((a, b) => a.localeCompare(b, "ja"));
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    let list = products.filter(
-      (p) => p.name.includes(query) && (activeCategory === null || p.category === activeCategory)
+  // 「物の名前」（generic_name）単位でグルーピング。例: 牛乳 → [おはよー牛乳, 森永牧場の大地, ...]
+  const genericItems = useMemo(() => {
+    const groups = new Map();
+    for (const p of products) {
+      if (!groups.has(p.genericName)) groups.set(p.genericName, []);
+      groups.get(p.genericName).push(p);
+    }
+    return [...groups.entries()].map(([genericName, items]) => {
+      const sortedItems = [...items].sort((a, b) => a.prices[0].price - b.prices[0].price);
+      const cheapestProduct = sortedItems[0];
+      return {
+        genericName,
+        category: cheapestProduct.category,
+        products: sortedItems,
+        cheapestPrice: cheapestProduct.prices[0].price,
+        cheapestStoreName: cheapestProduct.prices[0].storeName,
+        cheapestProductName: cheapestProduct.name,
+      };
+    });
+  }, [products]);
+
+  const genericItemByName = useMemo(() => new Map(genericItems.map((g) => [g.genericName, g])), [genericItems]);
+
+  const filteredGenericItems = useMemo(() => {
+    let list = genericItems.filter(
+      (g) =>
+        (g.genericName.includes(query) || g.products.some((p) => p.name.includes(query))) &&
+        (activeCategory === null || g.category === activeCategory)
     );
     list = [...list].sort((a, b) => {
-      const aMin = a.prices[0]?.price ?? Infinity;
-      const bMin = b.prices[0]?.price ?? Infinity;
-      if (sortBy === "priceAsc") return aMin - bMin;
-      if (sortBy === "priceDesc") return bMin - aMin;
-      if (sortBy === "name") return a.name.localeCompare(b.name, "ja");
+      if (sortBy === "priceAsc") return a.cheapestPrice - b.cheapestPrice;
+      if (sortBy === "priceDesc") return b.cheapestPrice - a.cheapestPrice;
+      if (sortBy === "name") return a.genericName.localeCompare(b.genericName, "ja");
       return 0;
     });
     return list;
-  }, [products, query, activeCategory, sortBy]);
+  }, [genericItems, query, activeCategory, sortBy]);
 
-  const toggleCart = (id) => {
+  const toggleCartKey = (key) => {
     setCart((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
-  const cartProducts = useMemo(() => products.filter((p) => cart.has(p.id)), [products, cart]);
+  // カート内の各エントリを解決: 「物の名前」指定なら店舗ごとに最安の商品を都度選ぶ、特定商品指定ならその商品固定
+  const cartEntries = useMemo(() => {
+    return [...cart]
+      .map((key) => {
+        if (key.startsWith("g:")) {
+          const genericName = key.slice(2);
+          const group = genericItemByName.get(genericName);
+          if (!group) return null;
+          return {
+            key,
+            label: `${genericName}（最安: ${group.cheapestProductName}）`,
+            priceAtStore: (storeId) => {
+              const prices = group.products
+                .map((p) => p.prices.find((pr) => pr.storeId === storeId))
+                .filter(Boolean);
+              if (prices.length === 0) return null;
+              return Math.min(...prices.map((pr) => pr.price));
+            },
+            representativePrice: group.cheapestPrice,
+          };
+        }
+        if (key.startsWith("p:")) {
+          const id = key.slice(2);
+          const product = productById.get(id);
+          if (!product) return null;
+          return {
+            key,
+            label: product.name,
+            priceAtStore: (storeId) => product.prices.find((pr) => pr.storeId === storeId)?.price ?? null,
+            representativePrice: product.prices[0].price,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }, [cart, genericItemByName, productById]);
 
   const builtinPresets = useMemo(() => {
     return BUILTIN_PRESETS.map((preset) => {
       const matched = preset.keywords
-        .map((kw) => products.find((p) => p.name.includes(kw)))
+        .map((kw) => genericItems.find((g) => g.genericName.includes(kw)) || products.find((p) => p.name.includes(kw)))
         .filter(Boolean);
-      return { ...preset, productIds: matched.map((p) => p.id) };
-    }).filter((preset) => preset.productIds.length > 0);
-  }, [products]);
+      return {
+        ...preset,
+        keys: matched.map((m) => (m.genericName !== undefined && m.products ? genericKey(m.genericName) : productKey(m.id))),
+      };
+    }).filter((preset) => preset.keys.length > 0);
+  }, [genericItems, products]);
 
-  const applyPresetIds = (ids) => {
+  const applyKeys = (keys) => {
     setCart((prev) => {
       const next = new Set(prev);
-      ids.forEach((id) => next.add(id));
+      keys.forEach((k) => next.add(k));
       return next;
     });
   };
 
   const applyCustomPreset = (preset) => {
-    const ids = products.filter((p) => preset.janCodes.includes(p.janCode)).map((p) => p.id);
-    applyPresetIds(ids);
+    const ids = products.filter((p) => preset.janCodes.includes(p.janCode)).map((p) => productKey(p.id));
+    applyKeys(ids);
   };
 
   const handleSaveCurrentAsPreset = (name) => {
-    const janCodes = cartProducts.map((p) => p.janCode);
+    // 「物の名前」指定分は代表商品(最安)のJANコードを保存する
+    const janCodes = cartEntries
+      .map((entry) => {
+        if (entry.key.startsWith("p:")) return productById.get(entry.key.slice(2))?.janCode;
+        const genericName = entry.key.slice(2);
+        return genericItemByName.get(genericName)?.products[0]?.janCode;
+      })
+      .filter(Boolean);
     setCustomPresets(saveCustomPreset(name, janCodes));
   };
 
@@ -160,21 +235,25 @@ export default function PriceCompareReal() {
     setCustomPresets(deleteCustomPreset(id));
   };
 
+  const cartKeys = useMemo(() => new Set(cartEntries.map((e) => e.key)), [cartEntries]);
+
   const cartSearchResults = useMemo(() => {
     if (!cartSearch.trim()) return [];
-    return products.filter((p) => p.name.includes(cartSearch) && !cart.has(p.id)).slice(0, 8);
-  }, [products, cartSearch, cart]);
+    return genericItems
+      .filter((g) => g.genericName.includes(cartSearch) && !cartKeys.has(genericKey(g.genericName)))
+      .slice(0, 8);
+  }, [genericItems, cartSearch, cartKeys]);
 
   const cartStoreTotals = useMemo(() => {
-    if (cartProducts.length === 0) return [];
+    if (cartEntries.length === 0) return [];
     return stores
       .map((s) => {
         let total = 0;
         let foundCount = 0;
-        for (const p of cartProducts) {
-          const priceAtStore = p.prices.find((pr) => pr.storeId === s.id);
-          if (priceAtStore) {
-            total += priceAtStore.price;
+        for (const entry of cartEntries) {
+          const price = entry.priceAtStore(s.id);
+          if (price != null) {
+            total += price;
             foundCount += 1;
           }
         }
@@ -182,7 +261,7 @@ export default function PriceCompareReal() {
       })
       .filter((s) => s.foundCount > 0)
       .sort((a, b) => a.total - b.total);
-  }, [stores, cartProducts]);
+  }, [stores, cartEntries]);
 
   return (
     <div
@@ -240,15 +319,19 @@ export default function PriceCompareReal() {
 
               {view === "cart" && (
                 <CartView
-                  cartProducts={cartProducts}
+                  cartEntries={cartEntries}
                   cartSearch={cartSearch}
                   setCartSearch={setCartSearch}
                   cartSearchResults={cartSearchResults}
-                  toggleCart={toggleCart}
+                  onAddGeneric={(genericName) => {
+                    toggleCartKey(genericKey(genericName));
+                    setCartSearch("");
+                  }}
+                  onRemoveEntry={(key) => toggleCartKey(key)}
                   cartStoreTotals={cartStoreTotals}
                   builtinPresets={builtinPresets}
                   customPresets={customPresets}
-                  onApplyPresetIds={applyPresetIds}
+                  onApplyPresetKeys={applyKeys}
                   onApplyCustomPreset={applyCustomPreset}
                   onSavePreset={handleSaveCurrentAsPreset}
                   onDeletePreset={handleDeleteCustomPreset}
@@ -264,9 +347,10 @@ export default function PriceCompareReal() {
                   categories={categories}
                   activeCategory={activeCategory}
                   setActiveCategory={setActiveCategory}
-                  filteredProducts={filteredProducts}
-                  cart={cart}
-                  toggleCart={toggleCart}
+                  filteredGenericItems={filteredGenericItems}
+                  cartKeys={cartKeys}
+                  onToggleGeneric={(genericName) => toggleCartKey(genericKey(genericName))}
+                  onToggleProduct={(id) => toggleCartKey(productKey(id))}
                 />
               )}
 
@@ -344,15 +428,16 @@ function MapView({ stores }) {
 }
 
 function CartView({
-  cartProducts,
+  cartEntries,
   cartSearch,
   setCartSearch,
   cartSearchResults,
-  toggleCart,
+  onAddGeneric,
+  onRemoveEntry,
   cartStoreTotals,
   builtinPresets,
   customPresets,
-  onApplyPresetIds,
+  onApplyPresetKeys,
   onApplyCustomPreset,
   onSavePreset,
   onDeletePreset,
@@ -370,7 +455,7 @@ function CartView({
               <button
                 key={preset.name}
                 type="button"
-                onClick={() => onApplyPresetIds(preset.productIds)}
+                onClick={() => onApplyPresetKeys(preset.keys)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -441,7 +526,7 @@ function CartView({
           <input
             value={cartSearch}
             onChange={(e) => setCartSearch(e.target.value)}
-            placeholder="商品名で検索してリストに追加"
+            placeholder="物の名前で検索してリストに追加（例: 牛乳）"
             style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
           />
         </div>
@@ -459,14 +544,11 @@ function CartView({
               zIndex: 10,
             }}
           >
-            {cartSearchResults.map((p) => (
+            {cartSearchResults.map((g) => (
               <button
-                key={p.id}
+                key={g.genericName}
                 type="button"
-                onClick={() => {
-                  toggleCart(p.id);
-                  setCartSearch("");
-                }}
+                onClick={() => onAddGeneric(g.genericName)}
                 style={{
                   display: "block",
                   width: "100%",
@@ -478,15 +560,17 @@ function CartView({
                   borderTop: "1px solid #EEF0E9",
                 }}
               >
-                {p.name}
-                <span style={{ color: "#8A9285", marginLeft: 8 }}>最安 {yen(p.prices[0].price)}</span>
+                {g.genericName}
+                <span style={{ color: "#8A9285", marginLeft: 8 }}>
+                  最安 {yen(g.cheapestPrice)}（{g.cheapestProductName}）
+                </span>
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {cartProducts.length === 0 ? (
+      {cartEntries.length === 0 ? (
         <div
           style={{
             background: "#fff",
@@ -498,14 +582,14 @@ function CartView({
             fontSize: 13,
           }}
         >
-          上の検索欄から商品を追加すると、一番安い店をすぐ診断します
+          上の検索欄から物の名前を追加すると、一番安い店をすぐ診断します
         </div>
       ) : (
         <>
           <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden", marginBottom: 12 }}>
-            {cartProducts.map((p, i) => (
+            {cartEntries.map((entry, i) => (
               <div
-                key={p.id}
+                key={entry.key}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -514,10 +598,10 @@ function CartView({
                   borderTop: i === 0 ? "none" : "1px solid #EEF0E9",
                 }}
               >
-                <span style={{ fontSize: 13 }}>{p.name}</span>
+                <span style={{ fontSize: 13 }}>{entry.label}</span>
                 <button
                   type="button"
-                  onClick={() => toggleCart(p.id)}
+                  onClick={() => onRemoveEntry(entry.key)}
                   style={{ border: "none", background: "transparent", color: "#8A9285" }}
                 >
                   <X size={14} />
@@ -597,7 +681,7 @@ function CartView({
                   {i === 0 && <Crown size={16} color="#E8A33D" />}
                   <div>
                     <div style={{ fontSize: 13 }}>{s.name}</div>
-                    <div style={{ fontSize: 11, color: "#A9B3A3" }}>{s.foundCount}/{cartProducts.length}品目が対象</div>
+                    <div style={{ fontSize: 11, color: "#A9B3A3" }}>{s.foundCount}/{cartEntries.length}品目が対象</div>
                   </div>
                 </div>
                 <div className="price-num" style={{ fontSize: 18, fontWeight: 700 }}>
@@ -620,10 +704,22 @@ function ListView({
   categories,
   activeCategory,
   setActiveCategory,
-  filteredProducts,
-  cart,
-  toggleCart,
+  filteredGenericItems,
+  cartKeys,
+  onToggleGeneric,
+  onToggleProduct,
 }) {
+  const [expanded, setExpanded] = useState(() => new Set());
+
+  const toggleExpanded = (genericName) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(genericName)) next.delete(genericName);
+      else next.add(genericName);
+      return next;
+    });
+  };
+
   return (
     <>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -643,7 +739,7 @@ function ListView({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="商品名で検索"
+            placeholder="物の名前・商品名で検索"
             style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
           />
         </div>
@@ -702,54 +798,120 @@ function ListView({
         ))}
       </div>
 
-      <p style={{ fontSize: 12, color: "#8A9285", margin: "0 0 8px" }}>{filteredProducts.length}件表示</p>
+      <p style={{ fontSize: 12, color: "#8A9285", margin: "0 0 8px" }}>{filteredGenericItems.length}件表示</p>
 
       <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden" }}>
-        {filteredProducts.map((p, i) => {
-          const cheapest = p.prices[0];
-          const others = p.prices.slice(1);
+        {filteredGenericItems.map((g, i) => {
+          const isOpen = expanded.has(g.genericName);
+          const isInCart = cartKeys.has(genericKey(g.genericName));
           return (
-            <div
-              key={p.id}
-              style={{
-                padding: "12px 16px",
-                borderTop: i === 0 ? "none" : "1px solid #EEF0E9",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: "#8A9285" }}>
-                    最安: {cheapest.storeName}
-                    {others.length > 0 && (
-                      <span> ・ 他{others.map((o) => `${o.storeName} ${yen(o.price)}`).join("、")}</span>
-                    )}
+            <div key={g.genericName} style={{ borderTop: i === 0 ? "none" : "1px solid #EEF0E9" }}>
+              <div
+                style={{
+                  padding: "12px 16px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleExpanded(g.genericName)}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 6,
+                    border: "none",
+                    background: "transparent",
+                    textAlign: "left",
+                    padding: 0,
+                  }}
+                >
+                  {isOpen ? (
+                    <ChevronDown size={16} color="#8A9285" style={{ marginTop: 2, flexShrink: 0 }} />
+                  ) : (
+                    <ChevronRight size={16} color="#8A9285" style={{ marginTop: 2, flexShrink: 0 }} />
+                  )}
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{g.genericName}</div>
+                    <div style={{ fontSize: 11, color: "#8A9285" }}>
+                      最安: {g.cheapestProductName}（{g.cheapestStoreName}） ・ 他{g.products.length - 1}商品
+                    </div>
                   </div>
-                </div>
+                </button>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div className="price-num" style={{ fontSize: 16, fontWeight: 700 }}>
-                    {yen(cheapest.price)}
+                    {yen(g.cheapestPrice)}
                   </div>
                   <button
                     type="button"
-                    onClick={() => toggleCart(p.id)}
+                    onClick={() => onToggleGeneric(g.genericName)}
                     style={{
                       border: "1px solid #2F6B4A",
                       borderRadius: 8,
                       padding: "4px 8px",
-                      background: cart.has(p.id) ? "#2F6B4A" : "#fff",
-                      color: cart.has(p.id) ? "#fff" : "#2F6B4A",
+                      background: isInCart ? "#2F6B4A" : "#fff",
+                      color: isInCart ? "#fff" : "#2F6B4A",
                       fontSize: 11,
                     }}
                   >
-                    {cart.has(p.id) ? "追加済み" : "追加"}
+                    {isInCart ? "追加済み" : "追加"}
                   </button>
                 </div>
               </div>
+
+              {isOpen && (
+                <div style={{ background: "#F7F9F5", padding: "4px 16px 10px 34px" }}>
+                  {g.products.map((p) => {
+                    const cheapest = p.prices[0];
+                    const others = p.prices.slice(1);
+                    const productInCart = cartKeys.has(productKey(p.id));
+                    return (
+                      <div
+                        key={p.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px 0",
+                          borderTop: "1px solid #E4E9DE",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 13 }}>{p.name}</div>
+                          <div style={{ fontSize: 11, color: "#8A9285" }}>
+                            {cheapest.storeName} {yen(cheapest.price)}
+                            {others.length > 0 && (
+                              <span> ・ 他{others.map((o) => `${o.storeName} ${yen(o.price)}`).join("、")}</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onToggleProduct(p.id)}
+                          style={{
+                            border: "1px solid #2F6B4A",
+                            borderRadius: 8,
+                            padding: "3px 8px",
+                            background: productInCart ? "#2F6B4A" : "#fff",
+                            color: productInCart ? "#fff" : "#2F6B4A",
+                            fontSize: 11,
+                            flexShrink: 0,
+                            marginLeft: 8,
+                          }}
+                        >
+                          {productInCart ? "指定済み" : "これを指定"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
-        {filteredProducts.length === 0 && (
+        {filteredGenericItems.length === 0 && (
           <div style={{ padding: 24, textAlign: "center", color: "#8A9285", fontSize: 13 }}>
             該当する商品がありません
           </div>

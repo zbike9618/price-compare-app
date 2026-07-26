@@ -18,6 +18,7 @@ async function main() {
         janCode: item.janCode,
         name: item.name,
         category: KEYWORD_CATEGORY[keyword],
+        genericName: keyword,
       });
       await upsertStoreProduct({
         storeId: store.id,
