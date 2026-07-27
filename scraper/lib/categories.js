@@ -69,7 +69,15 @@ const NOISE_FILTER_EXEMPT_KEYWORDS = new Set([
   "ティッシュ",
 ]);
 
+// ペットフード・離乳食は「鮭」「まぐろ」等の検索結果に大量混入するが人間の食品比較としては無関係なため、
+// キーワードによらず常に除外する
+const PET_AND_BABY_FOOD_WORDS = [
+  "ペット用", "ペットフード", "キャットフード", "ドッグフード", "ちゅーる", "ちゅ～る", "ちゅ~る",
+  "ヶ月頃",
+];
+
 export function isNoiseProduct(keyword, productName) {
+  if (PET_AND_BABY_FOOD_WORDS.some((w) => productName.includes(w))) return true;
   if (NOISE_FILTER_EXEMPT_KEYWORDS.has(keyword)) return false;
   return NOISE_WORDS.some((w) => productName.includes(w));
 }
