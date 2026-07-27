@@ -148,6 +148,16 @@ export default function PriceCompareReal() {
     return list;
   }, [genericItems, query, activeCategory, sortBy]);
 
+  // カテゴリごとにセクション分けして表示するための構造。categoriesの順序を維持する
+  const sectionedGenericItems = useMemo(() => {
+    const groups = new Map();
+    for (const g of filteredGenericItems) {
+      if (!groups.has(g.category)) groups.set(g.category, []);
+      groups.get(g.category).push(g);
+    }
+    return categories.filter((c) => groups.has(c)).map((c) => ({ category: c, items: groups.get(c) }));
+  }, [filteredGenericItems, categories]);
+
   const toggleCartKey = (key) => {
     setCart((prev) => {
       const next = new Set(prev);
@@ -348,6 +358,7 @@ export default function PriceCompareReal() {
                   activeCategory={activeCategory}
                   setActiveCategory={setActiveCategory}
                   filteredGenericItems={filteredGenericItems}
+                  sectionedGenericItems={sectionedGenericItems}
                   cartKeys={cartKeys}
                   onToggleGeneric={(genericName) => toggleCartKey(genericKey(genericName))}
                   onToggleProduct={(id) => toggleCartKey(productKey(id))}
@@ -705,6 +716,7 @@ function ListView({
   activeCategory,
   setActiveCategory,
   filteredGenericItems,
+  sectionedGenericItems,
   cartKeys,
   onToggleGeneric,
   onToggleProduct,
@@ -800,123 +812,126 @@ function ListView({
 
       <p style={{ fontSize: 12, color: "#8A9285", margin: "0 0 8px" }}>{filteredGenericItems.length}件表示</p>
 
-      <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden" }}>
-        {filteredGenericItems.map((g, i) => {
-          const isOpen = expanded.has(g.genericName);
-          const isInCart = cartKeys.has(genericKey(g.genericName));
-          return (
-            <div key={g.genericName} style={{ borderTop: i === 0 ? "none" : "1px solid #EEF0E9" }}>
-              <div
-                style={{
-                  padding: "12px 16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleExpanded(g.genericName)}
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 6,
-                    border: "none",
-                    background: "transparent",
-                    textAlign: "left",
-                    padding: 0,
-                  }}
-                >
-                  {isOpen ? (
-                    <ChevronDown size={16} color="#8A9285" style={{ marginTop: 2, flexShrink: 0 }} />
-                  ) : (
-                    <ChevronRight size={16} color="#8A9285" style={{ marginTop: 2, flexShrink: 0 }} />
-                  )}
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{g.genericName}</div>
-                    <div style={{ fontSize: 11, color: "#8A9285" }}>
-                      最安: {g.cheapestProductName}（{g.cheapestStoreName}） ・ 他{g.products.length - 1}商品
-                    </div>
-                  </div>
-                </button>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div className="price-num" style={{ fontSize: 16, fontWeight: 700 }}>
-                    {yen(g.cheapestPrice)}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onToggleGeneric(g.genericName)}
+      {sectionedGenericItems.map((section) => (
+        <div key={section.category} style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#5A6357", margin: "0 0 6px" }}>
+            {section.category} <span style={{ fontWeight: 400, color: "#8A9285" }}>（{section.items.length}）</span>
+          </p>
+          <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden" }}>
+            {section.items.map((g, i) => {
+              const isOpen = expanded.has(g.genericName);
+              const isInCart = cartKeys.has(genericKey(g.genericName));
+              return (
+                <div key={g.genericName} style={{ borderTop: i === 0 ? "none" : "1px solid #EEF0E9" }}>
+                  <div
                     style={{
-                      border: "1px solid #2F6B4A",
-                      borderRadius: 8,
-                      padding: "4px 8px",
-                      background: isInCart ? "#2F6B4A" : "#fff",
-                      color: isInCart ? "#fff" : "#2F6B4A",
-                      fontSize: 11,
+                      padding: "12px 16px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {isInCart ? "追加済み" : "追加"}
-                  </button>
-                </div>
-              </div>
-
-              {isOpen && (
-                <div style={{ background: "#F7F9F5", padding: "4px 16px 10px 34px" }}>
-                  {g.products.map((p) => {
-                    const cheapest = p.prices[0];
-                    const others = p.prices.slice(1);
-                    const productInCart = cartKeys.has(productKey(p.id));
-                    return (
-                      <div
-                        key={p.id}
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(g.genericName)}
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        border: "none",
+                        background: "transparent",
+                        textAlign: "left",
+                        padding: 0,
+                      }}
+                    >
+                      {isOpen ? (
+                        <ChevronDown size={16} color="#8A9285" style={{ flexShrink: 0 }} />
+                      ) : (
+                        <ChevronRight size={16} color="#8A9285" style={{ flexShrink: 0 }} />
+                      )}
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{g.genericName}</span>
+                      <span style={{ fontSize: 11, color: "#8A9285" }}>（{g.products.length}）</span>
+                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div className="price-num" style={{ fontSize: 16, fontWeight: 700 }}>
+                        {yen(g.cheapestPrice)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onToggleGeneric(g.genericName)}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "8px 0",
-                          borderTop: "1px solid #E4E9DE",
+                          border: "1px solid #2F6B4A",
+                          borderRadius: 8,
+                          padding: "4px 8px",
+                          background: isInCart ? "#2F6B4A" : "#fff",
+                          color: isInCart ? "#fff" : "#2F6B4A",
+                          fontSize: 11,
                         }}
                       >
-                        <div>
-                          <div style={{ fontSize: 13 }}>{p.name}</div>
-                          <div style={{ fontSize: 11, color: "#8A9285" }}>
-                            {cheapest.storeName} {yen(cheapest.price)}
-                            {others.length > 0 && (
-                              <span> ・ 他{others.map((o) => `${o.storeName} ${yen(o.price)}`).join("、")}</span>
-                            )}
+                        {isInCart ? "追加済み" : "追加"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div style={{ background: "#F7F9F5", padding: "4px 16px 10px 34px" }}>
+                      {g.products.map((p) => {
+                        const cheapest = p.prices[0];
+                        const others = p.prices.slice(1);
+                        const productInCart = cartKeys.has(productKey(p.id));
+                        return (
+                          <div
+                            key={p.id}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "8px 0",
+                              borderTop: "1px solid #E4E9DE",
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontSize: 13 }}>{p.name}</div>
+                              <div style={{ fontSize: 11, color: "#8A9285" }}>
+                                {cheapest.storeName} {yen(cheapest.price)}
+                                {others.length > 0 && (
+                                  <span> ・ 他{others.map((o) => `${o.storeName} ${yen(o.price)}`).join("、")}</span>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => onToggleProduct(p.id)}
+                              style={{
+                                border: "1px solid #2F6B4A",
+                                borderRadius: 8,
+                                padding: "3px 8px",
+                                background: productInCart ? "#2F6B4A" : "#fff",
+                                color: productInCart ? "#fff" : "#2F6B4A",
+                                fontSize: 11,
+                                flexShrink: 0,
+                                marginLeft: 8,
+                              }}
+                            >
+                              {productInCart ? "指定済み" : "これを指定"}
+                            </button>
                           </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => onToggleProduct(p.id)}
-                          style={{
-                            border: "1px solid #2F6B4A",
-                            borderRadius: 8,
-                            padding: "3px 8px",
-                            background: productInCart ? "#2F6B4A" : "#fff",
-                            color: productInCart ? "#fff" : "#2F6B4A",
-                            fontSize: 11,
-                            flexShrink: 0,
-                            marginLeft: 8,
-                          }}
-                        >
-                          {productInCart ? "指定済み" : "これを指定"}
-                        </button>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-        {filteredGenericItems.length === 0 && (
-          <div style={{ padding: 24, textAlign: "center", color: "#8A9285", fontSize: 13 }}>
-            該当する商品がありません
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+      {filteredGenericItems.length === 0 && (
+        <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, padding: 24, textAlign: "center", color: "#8A9285", fontSize: 13 }}>
+          該当する商品がありません
+        </div>
+      )}
     </>
   );
 }
