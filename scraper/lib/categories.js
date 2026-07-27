@@ -62,6 +62,13 @@ const NOISE_WORDS = [
   "ゼロカロリー", "kcal", "サプリ", "入浴剤", "芳香剤", "洗剤",
   "えびせん", "サンダー", "ハーゲンダッツ", "パイ", "ケーキ", "プリン", "たい焼き",
   "ポテトチップ", "柿の種", "うまい棒",
+  "マッコリ", "豆乳", "Smoothie", "シェイク", "青汁", "チップ",
+];
+
+// 検索キーワードと無関係な非食品ブランド名（検索エンジン側が返す誤ヒット）。
+// 例: 「バナナ」検索で「ラスタバナナ」ブランドのスマホアクセサリがヒットする
+const UNRELATED_BRAND_WORDS = [
+  "ラスタバナナ", "プラレール", "コンバット", "肝油",
 ];
 
 // パン・穀物や調味料自体を指すキーワードは、その語自体が主役の加工食品なので除外フィルタの対象外にする
@@ -80,6 +87,7 @@ const PET_AND_BABY_FOOD_WORDS = [
 
 export function isNoiseProduct(keyword, productName) {
   if (PET_AND_BABY_FOOD_WORDS.some((w) => productName.includes(w))) return true;
+  if (UNRELATED_BRAND_WORDS.some((w) => productName.includes(w))) return true;
   if (NOISE_FILTER_EXEMPT_KEYWORDS.has(keyword)) return false;
   return NOISE_WORDS.some((w) => productName.includes(w));
 }
