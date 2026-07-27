@@ -9,18 +9,8 @@ function extractJanFromUrl(url) {
   return match ? match[1] : null;
 }
 
-export async function searchAeon(keyword) {
-  const url = `${STORE_BASE_URL}search/?q=${encodeURIComponent(keyword)}`;
-  const res = await fetch(url, {
-    headers: {
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    },
-  });
-  if (!res.ok) throw new Error(`aeon search failed: ${res.status}`);
-  const html = await res.text();
+function parseProductListHtml(html) {
   const $ = cheerio.load(html);
-
   const items = [];
   $("li.product-item").each((_, el) => {
     const $el = $(el);
@@ -47,6 +37,42 @@ export async function searchAeon(keyword) {
       taxPrice,
     });
   });
+  return items;
+}
 
+async function fetchAeonHtml(url) {
+  const res = await fetch(url, {
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    },
+  });
+  if (!res.ok) throw new Error(`aeon fetch failed: ${res.status} ${url}`);
+  return res.text();
+}
+
+export async function searchAeon(keyword) {
+  const url = `${STORE_BASE_URL}search/?q=${encodeURIComponent(keyword)}`;
+  const html = await fetchAeonHtml(url);
+  return parseProductListHtml(html);
+}
+
+// AEONサイト自身のカテゴリ分類ページから商品一覧を取得する。
+// キーワード検索は無関係な商品(検索エンジンの緩い全文一致)を拾いやすいが、
+// カテゴリページはAEON側が既に分類済みの商品のみを返すため精度が高い。
+// 100件/ページでページネーションされるため、次ページがある限り巡回する
+export async function fetchAeonCategory(categoryUrl) {
+  const items = [];
+  let pageUrl = categoryUrl;
+  let page = 1;
+  while (pageUrl && page <= 10) {
+    const html = await fetchAeonHtml(pageUrl);
+    items.push(...parseProductListHtml(html));
+
+    const $ = cheerio.load(html);
+    const nextHref = $("li.pages-item-next a.page").first().attr("href");
+    pageUrl = nextHref || null;
+    page += 1;
+  }
   return items;
 }

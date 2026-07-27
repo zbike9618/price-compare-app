@@ -52,6 +52,57 @@ export const KEYWORD_CATEGORY = {
 
 export const SEED_KEYWORDS = Object.keys(KEYWORD_CATEGORY);
 
+// AEON(イオンネットスーパー)自身のカテゴリ分類ページのURL。
+// キーワード検索は無関係な商品が混入しやすいが、カテゴリページはAEON側が既に分類済みのため精度が高い。
+// requireMatch指定があるキーワードは、複数食材が同じカテゴリに同居しているため
+// 取得後に商品名でさらに絞り込む（例:「たまねぎ・にんじん」カテゴリからは商品名に該当語を含むものだけ採用）。
+// url: null のキーワード（いちご・卵・さば）は対応するカテゴリが無く、従来のキーワード検索にフォールバックする
+const AEON_BASE = "https://shop.aeon.com/netsuper/01050000041900/catalog/category/view/s";
+export const AEON_CATEGORIES = {
+  キャベツ: { url: `${AEON_BASE}/1102/id/4605379`, requireMatch: ["キャベツ", "きゃべつ"] },
+  にんじん: { url: `${AEON_BASE}/1106/id/4610699`, requireMatch: ["にんじん", "ニンジン", "人参"] },
+  大根: { url: `${AEON_BASE}/110401/id/4608459`, requireMatch: ["大根"] },
+  玉ねぎ: { url: `${AEON_BASE}/1106/id/4610699`, requireMatch: ["玉ねぎ", "たまねぎ", "タマネギ", "玉葱"] },
+  じゃがいも: { url: `${AEON_BASE}/110501/id/4609299` },
+  トマト: { url: `${AEON_BASE}/110102/id/4606779` },
+  きゅうり: { url: `${AEON_BASE}/110301/id/4607059` },
+  ほうれん草: { url: `${AEON_BASE}/110402/id/4608739`, requireMatch: ["ほうれん草"] },
+  りんご: { url: `${AEON_BASE}/1203/id/4616579` },
+  バナナ: { url: `${AEON_BASE}/1202/id/4616299` },
+  みかん: { url: `${AEON_BASE}/120401/id/4618259` },
+  いちご: { url: null },
+  牛乳: { url: `${AEON_BASE}/1702/id/4693938` },
+  ヨーグルト: { url: `${AEON_BASE}/1801/id/4697298` },
+  チーズ: { url: `${AEON_BASE}/1705/id/4694778` },
+  バター: { url: `${AEON_BASE}/1706/id/4695058`, requireMatch: ["バター"] },
+  豚肉: { url: `${AEON_BASE}/1411/id/4631148` },
+  鶏肉: { url: `${AEON_BASE}/1412/id/4636748` },
+  牛肉: { url: `${AEON_BASE}/1410/id/4630868` },
+  ひき肉: { url: `${AEON_BASE}/1413/id/4637028` },
+  鮭: { url: `${AEON_BASE}/1307/id/4619668`, requireMatch: ["鮭"] },
+  さば: { url: null },
+  まぐろ: { url: `${AEON_BASE}/130501/id/4620508` },
+  えび: { url: `${AEON_BASE}/130901/id/4623868`, requireMatch: ["えび"] },
+  食パン: { url: `${AEON_BASE}/1902/id/4675388`, requireMatch: ["食パン"] },
+  ロールパン: { url: `${AEON_BASE}/1902/id/4675388`, requireMatch: ["ロールパン"] },
+  うどん: { url: `${AEON_BASE}/1g01/id/4710749`, requireMatch: ["うどん"] },
+  パスタ: { url: `${AEON_BASE}/1g03/id/4711309`, requireMatch: ["パスタ", "スパゲティ", "スパゲッティ"] },
+  醤油: { url: `${AEON_BASE}/1j02/id/4682738` },
+  味噌: { url: `${AEON_BASE}/1j01/id/4682458` },
+  砂糖: { url: `${AEON_BASE}/1j03/id/4683018`, requireMatch: ["砂糖"] },
+  食用油: { url: `${AEON_BASE}/1j1201/id/4692818` },
+  卵: { url: null },
+  豆腐: { url: `${AEON_BASE}/1c01/id/4705709` },
+  納豆: { url: `${AEON_BASE}/1c02/id/4705989` },
+  ティッシュ: { url: `${AEON_BASE}/8a02/id/4820971` },
+};
+
+export function matchesRequiredKeyword(keyword, productName) {
+  const required = AEON_CATEGORIES[keyword]?.requireMatch;
+  if (!required) return true;
+  return required.some((w) => productName.includes(w));
+}
+
 // 検索結果に紛れ込む無関係な加工食品・菓子を除外するための語リスト。
 // 例: 「みかん」検索で「みかん味のガム」がヒットしてしまい、物の名前グルーピングの精度を落とすのを防ぐ
 const NOISE_WORDS = [
