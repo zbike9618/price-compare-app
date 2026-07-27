@@ -1,5 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Store, ShoppingCart, List, MapPin, X, Crown, Bookmark, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Store,
+  ShoppingCart,
+  List,
+  MapPin,
+  X,
+  Crown,
+  Bookmark,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Carrot,
+  Apple,
+  Milk,
+  Beef,
+  Fish,
+  Croissant,
+  Soup,
+  Droplet,
+  Egg,
+  Package,
+} from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -32,6 +54,20 @@ async function supabaseGet(path) {
 function yen(n) {
   return `¥${Math.round(n).toLocaleString("ja-JP")}`;
 }
+
+const CATEGORY_STYLE = {
+  野菜: { icon: Carrot, color: "#4A8C3F" },
+  果物: { icon: Apple, color: "#C0392B" },
+  乳製品: { icon: Milk, color: "#3B82C4" },
+  精肉: { icon: Beef, color: "#A0522D" },
+  魚介: { icon: Fish, color: "#2196A8" },
+  パン類: { icon: Croissant, color: "#C4913B" },
+  麺類: { icon: Soup, color: "#D4A017" },
+  調味料: { icon: Droplet, color: "#8B6F47" },
+  日配食品: { icon: Egg, color: "#D4A017" },
+  日用品: { icon: Package, color: "#8A9285" },
+};
+const DEFAULT_CATEGORY_STYLE = { icon: Package, color: "#8A9285" };
 
 const SORT_OPTIONS = [
   { id: "priceAsc", label: "最安値が安い順" },
@@ -120,11 +156,13 @@ export default function PriceCompareReal() {
     return [...groups.entries()].map(([genericName, items]) => {
       const sortedItems = [...items].sort((a, b) => a.prices[0].price - b.prices[0].price);
       const cheapestProduct = sortedItems[0];
+      const allPrices = items.flatMap((p) => p.prices.map((pr) => pr.price));
       return {
         genericName,
         category: cheapestProduct.category,
         products: sortedItems,
         cheapestPrice: cheapestProduct.prices[0].price,
+        highestPrice: Math.max(...allPrices),
         cheapestStoreName: cheapestProduct.prices[0].storeName,
         cheapestProductName: cheapestProduct.name,
       };
@@ -132,6 +170,12 @@ export default function PriceCompareReal() {
   }, [products]);
 
   const genericItemByName = useMemo(() => new Map(genericItems.map((g) => [g.genericName, g])), [genericItems]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = new Map();
+    for (const g of genericItems) counts.set(g.category, (counts.get(g.category) ?? 0) + 1);
+    return counts;
+  }, [genericItems]);
 
   const filteredGenericItems = useMemo(() => {
     let list = genericItems.filter(
@@ -355,6 +399,7 @@ export default function PriceCompareReal() {
                   sortBy={sortBy}
                   setSortBy={setSortBy}
                   categories={categories}
+                  categoryCounts={categoryCounts}
                   activeCategory={activeCategory}
                   setActiveCategory={setActiveCategory}
                   filteredGenericItems={filteredGenericItems}
@@ -713,6 +758,7 @@ function ListView({
   sortBy,
   setSortBy,
   categories,
+  categoryCounts,
   activeCategory,
   setActiveCategory,
   filteredGenericItems,
@@ -780,6 +826,9 @@ function ListView({
           className="cat-btn"
           onClick={() => setActiveCategory(null)}
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
             padding: "5px 12px",
             borderRadius: 999,
             border: activeCategory === null ? "1px solid #2F6B4A" : "1px solid #D9DED2",
@@ -789,45 +838,96 @@ function ListView({
           }}
         >
           すべて
-        </button>
-        {categories.map((c) => (
-          <button
-            key={c}
-            type="button"
-            className="cat-btn"
-            onClick={() => setActiveCategory(c)}
+          <span
             style={{
-              padding: "5px 12px",
+              fontSize: 10,
+              padding: "1px 6px",
               borderRadius: 999,
-              border: activeCategory === c ? "1px solid #2F6B4A" : "1px solid #D9DED2",
-              background: activeCategory === c ? "#2F6B4A" : "#fff",
-              color: activeCategory === c ? "#fff" : "#202B22",
-              fontSize: 12,
+              background: activeCategory === null ? "rgba(255,255,255,0.25)" : "#EEF0E9",
+              color: activeCategory === null ? "#fff" : "#5A6357",
             }}
           >
-            {c}
-          </button>
-        ))}
+            {filteredGenericItems.length}
+          </span>
+        </button>
+        {categories.map((c) => {
+          const style = CATEGORY_STYLE[c] ?? DEFAULT_CATEGORY_STYLE;
+          const Icon = style.icon;
+          const active = activeCategory === c;
+          return (
+            <button
+              key={c}
+              type="button"
+              className="cat-btn"
+              onClick={() => setActiveCategory(c)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "5px 12px",
+                borderRadius: 999,
+                border: active ? "1px solid #2F6B4A" : "1px solid #D9DED2",
+                background: active ? "#2F6B4A" : "#fff",
+                color: active ? "#fff" : "#202B22",
+                fontSize: 12,
+              }}
+            >
+              <Icon size={12} color={active ? "#fff" : style.color} />
+              {c}
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "1px 6px",
+                  borderRadius: 999,
+                  background: active ? "rgba(255,255,255,0.25)" : "#EEF0E9",
+                  color: active ? "#fff" : "#5A6357",
+                }}
+              >
+                {categoryCounts.get(c) ?? 0}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <p style={{ fontSize: 12, color: "#8A9285", margin: "0 0 8px" }}>{filteredGenericItems.length}件表示</p>
 
-      {sectionedGenericItems.map((section) => (
+      {sectionedGenericItems.map((section) => {
+        const sectionStyle = CATEGORY_STYLE[section.category] ?? DEFAULT_CATEGORY_STYLE;
+        const SectionIcon = sectionStyle.icon;
+        return (
         <div key={section.category} style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#5A6357", margin: "0 0 6px" }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#5A6357", margin: "0 0 6px" }}>
+            <SectionIcon size={13} color={sectionStyle.color} />
             {section.category} <span style={{ fontWeight: 400, color: "#8A9285" }}>（{section.items.length}）</span>
           </p>
           <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, overflow: "hidden" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderBottom: "1px solid #EEF0E9",
+                fontSize: 11,
+                color: "#8A9285",
+              }}
+            >
+              <span style={{ flex: 1 }}>商品</span>
+              <span style={{ width: 70, textAlign: "right" }}>最安値</span>
+              <span style={{ width: 110, textAlign: "right" }}>価格帯</span>
+              <span style={{ width: 76 }} />
+            </div>
             {section.items.map((g, i) => {
               const isOpen = expanded.has(g.genericName);
               const isInCart = cartKeys.has(genericKey(g.genericName));
+              const style = CATEGORY_STYLE[g.category] ?? DEFAULT_CATEGORY_STYLE;
+              const Icon = style.icon;
               return (
                 <div key={g.genericName} style={{ borderTop: i === 0 ? "none" : "1px solid #EEF0E9" }}>
                   <div
                     style={{
-                      padding: "12px 16px",
+                      padding: "10px 16px",
                       display: "flex",
-                      justifyContent: "space-between",
                       alignItems: "center",
                     }}
                   >
@@ -838,25 +938,45 @@ function ListView({
                         flex: 1,
                         display: "flex",
                         alignItems: "center",
-                        gap: 6,
+                        gap: 8,
                         border: "none",
                         background: "transparent",
                         textAlign: "left",
                         padding: 0,
+                        minWidth: 0,
                       }}
                     >
                       {isOpen ? (
-                        <ChevronDown size={16} color="#8A9285" style={{ flexShrink: 0 }} />
+                        <ChevronDown size={14} color="#8A9285" style={{ flexShrink: 0 }} />
                       ) : (
-                        <ChevronRight size={16} color="#8A9285" style={{ flexShrink: 0 }} />
+                        <ChevronRight size={14} color="#8A9285" style={{ flexShrink: 0 }} />
                       )}
-                      <span style={{ fontSize: 14, fontWeight: 700 }}>{g.genericName}</span>
-                      <span style={{ fontSize: 11, color: "#8A9285" }}>（{g.products.length}）</span>
-                    </button>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div className="price-num" style={{ fontSize: 16, fontWeight: 700 }}>
-                        {yen(g.cheapestPrice)}
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: `${style.color}1A`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Icon size={14} color={style.color} />
                       </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {g.genericName}
+                      </span>
+                      <span style={{ fontSize: 11, color: "#8A9285", flexShrink: 0 }}>（{g.products.length}）</span>
+                    </button>
+                    <div className="price-num" style={{ width: 70, textAlign: "right", fontSize: 15, fontWeight: 700, flexShrink: 0 }}>
+                      {yen(g.cheapestPrice)}
+                    </div>
+                    <div className="price-num" style={{ width: 110, textAlign: "right", fontSize: 11, color: "#8A9285", flexShrink: 0 }}>
+                      {g.highestPrice > g.cheapestPrice ? `¥${g.cheapestPrice}〜¥${g.highestPrice}` : "—"}
+                    </div>
+                    <div style={{ width: 76, textAlign: "right", flexShrink: 0 }}>
                       <button
                         type="button"
                         onClick={() => onToggleGeneric(g.genericName)}
@@ -926,7 +1046,8 @@ function ListView({
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
       {filteredGenericItems.length === 0 && (
         <div style={{ background: "#fff", border: "1px solid #D9DED2", borderRadius: 14, padding: 24, textAlign: "center", color: "#8A9285", fontSize: 13 }}>
           該当する商品がありません
