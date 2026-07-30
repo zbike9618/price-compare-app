@@ -7,7 +7,7 @@ export default function ShoppingListCompare({
   cartSearch,
   setCartSearch,
   cartSearchResults,
-  onAddGeneric,
+  onAddProduct,
   onRemoveEntry,
   cartStoreTotals,
   builtinPresets,
@@ -79,7 +79,7 @@ export default function ShoppingListCompare({
           <input
             value={cartSearch}
             onChange={(e) => setCartSearch(e.target.value)}
-            placeholder="物の名前で検索してリストに追加（例: 牛乳）"
+            placeholder="商品名で検索してリストに追加（例: 牛乳）"
             style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
           />
         </div>
@@ -90,19 +90,19 @@ export default function ShoppingListCompare({
               border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden", zIndex: 10,
             }}
           >
-            {cartSearchResults.map((g) => (
+            {cartSearchResults.map((p) => (
               <button
-                key={g.genericName}
+                key={p.id}
                 type="button"
-                onClick={() => onAddGeneric(g.genericName)}
+                onClick={() => onAddProduct(p.id)}
                 style={{
                   display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
                   border: "none", background: "#fff", fontSize: 13, borderTop: "1px solid #f1f5f9",
                 }}
               >
-                {g.genericName}
+                {p.name}
                 <span style={{ color: "#94a3b8", marginLeft: 8 }}>
-                  最安 {yen(g.cheapestPrice)}（{g.cheapestProductName}）
+                  最安 {yen(p.prices[0].price)}
                 </span>
               </button>
             ))}
@@ -112,7 +112,7 @@ export default function ShoppingListCompare({
 
       {cartEntries.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "32px 16px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-          上の検索欄から物の名前を追加すると、一番安い店をすぐ診断します
+          上の検索欄から商品名を追加すると、一番安い店をすぐ診断します
         </div>
       ) : (
         <>
