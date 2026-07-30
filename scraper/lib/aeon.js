@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 
-const STORE_BASE_URL = "https://shop.aeon.com/netsuper/01050000041900/";
+const DEFAULT_STORE_BASE_URL = "https://shop.aeon.com/netsuper/01050000041900/";
 
 // 商品ページURL・画像URLの末尾13桁がJANコードと一致する
 // 例: .../010500000419004901810124213.html -> 4901810124213
@@ -51,8 +51,8 @@ async function fetchAeonHtml(url) {
   return res.text();
 }
 
-export async function searchAeon(keyword) {
-  const url = `${STORE_BASE_URL}search/?q=${encodeURIComponent(keyword)}`;
+export async function searchAeon(keyword, storeBaseUrl = DEFAULT_STORE_BASE_URL) {
+  const url = `${storeBaseUrl}search/?q=${encodeURIComponent(keyword)}`;
   const html = await fetchAeonHtml(url);
   return parseProductListHtml(html);
 }
