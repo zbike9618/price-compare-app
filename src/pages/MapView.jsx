@@ -139,7 +139,7 @@ export default function MapView({ stores, rangeSetting, inRangeStoreIds, onConfi
           {selecting ? (
             <div
               style={{
-                position: "absolute", top: 14, right: 14, background: "#fff", borderRadius: 10,
+                position: "absolute", top: 14, right: 14, zIndex: 1000, background: "#fff", borderRadius: 10,
                 padding: 12, width: 190, boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
               }}
             >
@@ -193,7 +193,7 @@ export default function MapView({ stores, rangeSetting, inRangeStoreIds, onConfi
                 setSelecting(true);
               }}
               style={{
-                position: "absolute", top: 14, right: 14, background: "#fff", border: "1px solid #e2e8f0",
+                position: "absolute", top: 14, right: 14, zIndex: 1000, background: "#fff", border: "1px solid #e2e8f0",
                 borderRadius: 999, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "#2563eb",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.08)", cursor: "pointer",
               }}
