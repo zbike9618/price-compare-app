@@ -25,3 +25,6 @@ dist-ssr
 
 # Superpowers brainstorming companion sessions
 .superpowers/
+
+# Git worktrees for isolated feature work
+.worktrees/
