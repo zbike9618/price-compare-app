@@ -1,11 +1,11 @@
 const STORAGE_KEY = "priceCompareApp.customPresets";
 
 // 定番セット（運営側が用意する固定プリセット）。商品名の部分一致で該当商品を集める
-export const BUILTIN_PRESETS = [
-  { name: "定番野菜セット", keywords: ["キャベツ", "にんじん", "玉ねぎ", "じゃがいも"] },
-  { name: "朝ごはんセット", keywords: ["牛乳", "食パン", "卵", "ヨーグルト"] },
-  { name: "自炊定番セット", keywords: ["豚肉", "醤油", "味噌", "豆腐"] },
-];
+// 2026-07-30: generic_name廃止に伴いキーワード一致→最安値選択方式に変更したところ、
+// 「キャベツ」→お菓子「キャベツ太郎」等、不適切な商品を選んでしまう問題が判明したため
+// 一時撤廃（Z判断）。マッチング精度の改善方法が決まるまで空のままにする。
+// 詳細: .secretary/projects/price-compare-app/project.md のタスク参照
+export const BUILTIN_PRESETS = [];
 
 export function loadCustomPresets() {
   try {
