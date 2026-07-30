@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package,
 } from "lucide-react";
@@ -18,6 +18,8 @@ const CATEGORY_STYLE = {
   日用品: { icon: Package, color: "#64748b" },
 };
 const DEFAULT_CATEGORY_STYLE = { icon: Package, color: "#64748b" };
+const INITIAL_VISIBLE_COUNT = 20;
+const SHOW_MORE_STEP = 30;
 
 const SORT_OPTIONS = [
   { id: "priceAsc", label: "最安値が安い順" },
@@ -43,6 +45,20 @@ export default function ListView({
   rangeHint,
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
+  const [visibleCounts, setVisibleCounts] = useState(() => new Map());
+
+  // 検索・カテゴリ絞り込みが変わったら各セクションの表示件数をリセットする
+  useEffect(() => {
+    setVisibleCounts(new Map());
+  }, [query, activeCategory]);
+
+  const showMore = (category) => {
+    setVisibleCounts((prev) => {
+      const next = new Map(prev);
+      next.set(category, (prev.get(category) ?? INITIAL_VISIBLE_COUNT) + SHOW_MORE_STEP);
+      return next;
+    });
+  };
 
   const toggleExpanded = (productId) => {
     setExpanded((prev) => {
@@ -128,6 +144,9 @@ export default function ListView({
       {sectionedProducts.map((section) => {
         const sectionStyle = CATEGORY_STYLE[section.category] ?? DEFAULT_CATEGORY_STYLE;
         const SectionIcon = sectionStyle.icon;
+        const visibleCount = visibleCounts.get(section.category) ?? INITIAL_VISIBLE_COUNT;
+        const visibleItems = section.items.slice(0, visibleCount);
+        const remaining = section.items.length - visibleItems.length;
         return (
           <div key={section.category} style={{ marginBottom: 16 }}>
             <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#64748b", margin: "0 0 6px" }}>
@@ -135,7 +154,7 @@ export default function ListView({
               {section.category} <span style={{ fontWeight: 400, color: "#94a3b8" }}>（{section.items.length}）</span>
             </p>
             <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden" }}>
-              {section.items.map((product) => {
+              {visibleItems.map((product) => {
                 const isInCart = cartKeys.has(productKey(product.id));
                 const isFavorite = favoriteIds.has(product.id);
                 const isDiscounted = discountedProductIds.has(product.id);
@@ -154,6 +173,19 @@ export default function ListView({
                   />
                 );
               })}
+              {remaining > 0 && (
+                <button
+                  type="button"
+                  onClick={() => showMore(section.category)}
+                  style={{
+                    display: "block", width: "100%", padding: 10, border: "none",
+                    borderTop: "1px solid #e2e8f0", background: "#f8fafc", color: "#2563eb",
+                    fontSize: 12, fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  もっと見る（あと{remaining}件）
+                </button>
+              )}
             </div>
           </div>
         );
