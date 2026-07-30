@@ -1,9 +1,8 @@
 import { ChevronDown, ChevronRight, Star, TrendingDown } from "lucide-react";
-import { productKey } from "../lib/cartKeys.js";
 import { yen } from "../lib/format.js";
 
 export default function ProductRow({
-  item,
+  product,
   categoryStyle,
   isOpen,
   onToggleExpand,
@@ -12,10 +11,10 @@ export default function ProductRow({
   isFavorite,
   onToggleFavorite,
   isDiscounted,
-  cartKeys,
-  onToggleProductCart,
 }) {
   const Icon = categoryStyle.icon;
+  const cheapest = product.prices[0];
+  const others = product.prices.slice(1);
 
   return (
     <div style={{ borderTop: "1px solid #f1f5f9" }}>
@@ -37,10 +36,14 @@ export default function ProductRow({
             background: "transparent", textAlign: "left", padding: 0, minWidth: 0,
           }}
         >
-          {isOpen ? (
-            <ChevronDown size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+          {others.length > 0 ? (
+            isOpen ? (
+              <ChevronDown size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+            ) : (
+              <ChevronRight size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+            )
           ) : (
-            <ChevronRight size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+            <span style={{ width: 14, flexShrink: 0 }} />
           )}
           <div
             style={{
@@ -53,7 +56,7 @@ export default function ProductRow({
           <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {item.genericName}
+                {product.name}
               </span>
               {isDiscounted && (
                 <span
@@ -67,13 +70,13 @@ export default function ProductRow({
               )}
             </div>
             <div style={{ fontSize: 11, color: "#94a3b8" }}>
-              {item.products.length}商品・{item.products.length > 1 ? "複数店舗で比較可能" : "1店舗のみ"}
+              {others.length > 0 ? `${product.prices.length}店舗で比較可能` : "1店舗のみ"}
             </div>
           </div>
         </button>
 
         <div className="price-num" style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#16a34a" }}>{yen(item.cheapestPrice)}〜</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#16a34a" }}>{yen(cheapest.price)}</div>
         </div>
 
         <button
@@ -88,39 +91,12 @@ export default function ProductRow({
         </button>
       </div>
 
-      {isOpen && (
-        <div style={{ background: "#f8fafc", padding: "4px 16px 10px 34px" }}>
-          {item.products.map((p) => {
-            const cheapest = p.prices[0];
-            const others = p.prices.slice(1);
-            const productInCart = cartKeys.has(productKey(p.id));
-            return (
-              <div
-                key={p.id}
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderTop: "1px solid #e2e8f0" }}
-              >
-                <div>
-                  <div style={{ fontSize: 13 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                    {cheapest.storeName} {yen(cheapest.price)}
-                    {others.length > 0 && (
-                      <span> ・ 他{others.map((o) => `${o.storeName} ${yen(o.price)}`).join("、")}</span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onToggleProductCart(p.id)}
-                  style={{
-                    border: "1px solid #2563eb", borderRadius: 8, padding: "3px 8px", flexShrink: 0, marginLeft: 8,
-                    background: productInCart ? "#2563eb" : "#fff", color: productInCart ? "#fff" : "#2563eb", fontSize: 11,
-                  }}
-                >
-                  {productInCart ? "指定済み" : "これを指定"}
-                </button>
-              </div>
-            );
-          })}
+      {isOpen && others.length > 0 && (
+        <div style={{ background: "#f8fafc", padding: "8px 16px 10px 34px", fontSize: 11, color: "#94a3b8" }}>
+          {cheapest.storeName} {yen(cheapest.price)}
+          {others.map((o) => (
+            <span key={o.storeId}> ・ {o.storeName} {yen(o.price)}</span>
+          ))}
         </div>
       )}
     </div>

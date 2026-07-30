@@ -1,3 +1,2 @@
-// カート項目のキー種別: "g:<genericName>"（物の名前・最安自動選択） / "p:<productId>"（特定商品指定）
-export const genericKey = (genericName) => `g:${genericName}`;
+// カート項目のキー種別: "p:<productId>"（商品を指定）
 export const productKey = (id) => `p:${id}`;
