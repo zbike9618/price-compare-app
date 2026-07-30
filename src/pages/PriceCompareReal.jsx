@@ -4,6 +4,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
 import { isRecentPriceDrop } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
+import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import AppShell from "../components/AppShell.jsx";
 import ListView from "./ListView.jsx";
@@ -22,7 +23,8 @@ export default function PriceCompareReal() {
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
   const [discountedProductIds, setDiscountedProductIds] = useState(() => new Set());
-  const [view, setView] = useState("list");
+  const [rangeSetting, setRangeSetting] = useState(() => loadRangeSetting());
+  const [view, setView] = useState(() => (loadRangeSetting() ? "list" : "map"));
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("priceAsc");
   const [activeCategory, setActiveCategory] = useState(null);
@@ -96,21 +98,42 @@ export default function PriceCompareReal() {
     })();
   }, []);
 
-  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const storesInRangeIds = useMemo(() => {
+    if (!rangeSetting) return null;
+    return new Set(
+      stores
+        .filter((s) => s.lat != null && s.lng != null)
+        .filter(
+          (s) =>
+            haversineDistanceKm(rangeSetting.center.lat, rangeSetting.center.lng, s.lat, s.lng) <=
+            rangeSetting.radiusKm
+        )
+        .map((s) => s.id)
+    );
+  }, [stores, rangeSetting]);
+
+  const productsInRange = useMemo(() => {
+    if (!storesInRangeIds) return products;
+    return products
+      .map((p) => ({ ...p, prices: p.prices.filter((pr) => storesInRangeIds.has(pr.storeId)) }))
+      .filter((p) => p.prices.length > 0);
+  }, [products, storesInRangeIds]);
+
+  const productById = useMemo(() => new Map(productsInRange.map((p) => [p.id, p])), [productsInRange]);
 
   const categories = useMemo(() => {
-    const set = new Set(products.map((p) => p.category).filter(Boolean));
+    const set = new Set(productsInRange.map((p) => p.category).filter(Boolean));
     return [...set].sort((a, b) => a.localeCompare(b, "ja"));
-  }, [products]);
+  }, [productsInRange]);
 
   const categoryCounts = useMemo(() => {
     const counts = new Map();
-    for (const p of products) counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+    for (const p of productsInRange) counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
     return counts;
-  }, [products]);
+  }, [productsInRange]);
 
   const sectionedProducts = useMemo(() => {
-    let list = products.filter(
+    let list = productsInRange.filter(
       (p) => p.name.includes(query) && (activeCategory === null || p.category === activeCategory)
     );
     list = [...list].sort((a, b) => {
@@ -126,7 +149,7 @@ export default function PriceCompareReal() {
       groups.get(p.category).push(p);
     }
     return categories.filter((c) => groups.has(c)).map((c) => ({ category: c, items: groups.get(c) }));
-  }, [products, query, activeCategory, sortBy, categories]);
+  }, [productsInRange, query, activeCategory, sortBy, categories]);
 
   const toggleCartKey = (key) => {
     setCart((prev) => {
@@ -157,7 +180,7 @@ export default function PriceCompareReal() {
     return BUILTIN_PRESETS.map((preset) => {
       const keys = preset.keywords
         .map((kw) => {
-          const matches = products.filter((p) => p.name.includes(kw));
+          const matches = productsInRange.filter((p) => p.name.includes(kw));
           if (matches.length === 0) return null;
           const cheapest = matches.reduce((min, p) => (p.prices[0].price < min.prices[0].price ? p : min));
           return productKey(cheapest.id);
@@ -165,7 +188,7 @@ export default function PriceCompareReal() {
         .filter(Boolean);
       return { ...preset, keys };
     }).filter((preset) => preset.keys.length > 0);
-  }, [products]);
+  }, [productsInRange]);
 
   const applyKeys = (keys) => {
     setCart((prev) => {
@@ -176,7 +199,7 @@ export default function PriceCompareReal() {
   };
 
   const applyCustomPreset = (preset) => {
-    const ids = products.filter((p) => preset.janCodes.includes(p.janCode)).map((p) => productKey(p.id));
+    const ids = productsInRange.filter((p) => preset.janCodes.includes(p.janCode)).map((p) => productKey(p.id));
     applyKeys(ids);
   };
 
@@ -195,10 +218,10 @@ export default function PriceCompareReal() {
 
   const cartSearchResults = useMemo(() => {
     if (!cartSearch.trim()) return [];
-    return products
+    return productsInRange
       .filter((p) => p.name.includes(cartSearch) && !cartKeys.has(productKey(p.id)))
       .slice(0, 8);
-  }, [products, cartSearch, cartKeys]);
+  }, [productsInRange, cartSearch, cartKeys]);
 
   const cartStoreTotals = useMemo(() => {
     if (cartEntries.length === 0) return [];
@@ -218,6 +241,13 @@ export default function PriceCompareReal() {
       .filter((s) => s.foundCount > 0)
       .sort((a, b) => a.total - b.total);
   }, [stores, cartEntries]);
+
+  const handleConfirmRange = (center, radiusKm) => {
+    const next = { center, radiusKm };
+    saveRangeSetting(next);
+    setRangeSetting(next);
+    setView("list");
+  };
 
   if (loading) return <p style={{ padding: 24 }}>読み込み中...</p>;
   if (error) return <p style={{ padding: 24, color: "#dc2626" }}>データの取得に失敗しました: {error}</p>;
@@ -270,11 +300,18 @@ export default function PriceCompareReal() {
         />
       )}
 
-      {view === "map" && <MapView stores={stores} />}
+      {view === "map" && (
+        <MapView
+          stores={stores}
+          rangeSetting={rangeSetting}
+          inRangeStoreIds={storesInRangeIds}
+          onConfirmRange={handleConfirmRange}
+        />
+      )}
 
       {view === "favorites" && (
         <FavoritesView
-          products={products}
+          products={productsInRange}
           favoriteIds={favoriteIds}
           isLoggedIn={!!user}
           onOpenAuth={() => setShowAuthForm(true)}
