@@ -1,3 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+body {
+  font-family: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
+}
+
+.price-num {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+button, select {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input:focus, select:focus {
+  outline: none;
+}
+
 * {
   box-sizing: border-box;
 }

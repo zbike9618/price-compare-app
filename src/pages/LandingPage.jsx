@@ -6,7 +6,7 @@ const FEATURES = [
   {
     icon: MapPin,
     title: "地図で、近くの店がひと目でわかる",
-    body: "店舗のピンをタップするだけで、その店の価格一覧がすぐ開きます。",
+    body: "店舗のピンをタップするだけで、その店の場所がすぐわかります。",
   },
   {
     icon: List,
@@ -41,7 +41,6 @@ export default function LandingPage() {
   return (
     <div style={{ fontFamily: "'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif", background: "#f8fafc", color: "#0f172a", minHeight: "100%" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
         * { box-sizing: border-box; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.28); }
@@ -124,7 +123,7 @@ export default function LandingPage() {
         <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 4 }}>今の状況</div>
         <h2 style={{ fontSize: 19, fontWeight: 900, margin: "0 0 4px" }}>実データで動いている個人開発アプリです</h2>
         <p style={{ fontSize: 12.5, color: "#64748b", margin: "0 0 16px", lineHeight: 1.7 }}>
-          個人の節約用に開発中で、実店舗の価格を毎日自動収集しています。手応えがあれば、対応エリアの拡大も検討しています。
+          個人の節約用に開発中で、実店舗の価格を自動収集しています。手応えがあれば、対応エリアの拡大も検討しています。
         </p>
 
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden" }}>
