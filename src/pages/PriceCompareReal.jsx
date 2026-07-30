@@ -254,11 +254,18 @@ export default function PriceCompareReal() {
     const next = { center, radiusKm };
     saveRangeSetting(next);
     setRangeSetting(next);
+    setActiveCategory(null);
     setView("list");
   };
 
   if (loading) return <p style={{ padding: 24 }}>読み込み中...</p>;
   if (error) return <p style={{ padding: 24, color: "#dc2626" }}>データの取得に失敗しました: {error}</p>;
+
+  const inRangeStoreCount = storesInRangeIds ? storesInRangeIds.size : stores.length;
+  const rangeHint =
+    rangeSetting && storesInRangeIds && storesInRangeIds.size === 0
+      ? "範囲内に店舗がありません。範囲を広げてください"
+      : null;
 
   return (
     <AppShell
@@ -268,6 +275,25 @@ export default function PriceCompareReal() {
       onRequestAuth={() => setShowAuthForm(true)}
       onCloseAuth={() => setShowAuthForm(false)}
     >
+      {view !== "map" && (
+        <button
+          type="button"
+          onClick={() => setView("map")}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%",
+            border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", marginBottom: 12,
+            background: "#fff", fontSize: 12, color: "#334155", cursor: "pointer",
+          }}
+        >
+          <span>
+            {rangeSetting
+              ? `半径${rangeSetting.radiusKm.toFixed(1)}km・対象${inRangeStoreCount}店舗`
+              : "範囲未設定：全店舗を対象に表示中"}
+          </span>
+          <span style={{ color: "#2563eb", fontWeight: 700 }}>範囲を設定</span>
+        </button>
+      )}
+
       {view === "list" && (
         <ListView
           query={query}
@@ -284,6 +310,7 @@ export default function PriceCompareReal() {
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
           discountedProductIds={discountedProductIds}
+          rangeHint={rangeHint}
         />
       )}
 

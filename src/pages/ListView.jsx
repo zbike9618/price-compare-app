@@ -40,6 +40,7 @@ export default function ListView({
   favoriteIds,
   onToggleFavorite,
   discountedProductIds,
+  rangeHint,
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
 
@@ -160,7 +161,7 @@ export default function ListView({
 
       {sectionedProducts.length === 0 && (
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-          該当する商品がありません
+          {rangeHint ?? "該当する商品がありません"}
         </div>
       )}
     </>

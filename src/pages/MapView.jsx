@@ -101,9 +101,9 @@ export default function MapView({ stores, rangeSetting, inRangeStoreIds, onConfi
           fillColor: "#2563eb",
           fillOpacity: 0.08,
         }).addTo(map);
-      }
-
-      if (withCoords.length > 0) {
+        // 範囲設定がある場合は円を基準にズームする（全店舗基準だと遠方の店舗に引っ張られ円がほぼ見えなくなるため）
+        map.fitBounds(circleRef.current.getBounds().pad(0.3));
+      } else if (withCoords.length > 0) {
         const bounds = L.latLngBounds(withCoords.map((s) => [s.lat, s.lng]));
         map.fitBounds(bounds.pad(0.3));
       }
