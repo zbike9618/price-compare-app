@@ -22,7 +22,7 @@ export default function PriceCompareReal() {
   const [error, setError] = useState(null);
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
-  const [discountedProductIds, setDiscountedProductIds] = useState(() => new Set());
+  const [historyByPair, setHistoryByPair] = useState(() => new Map());
   const [rangeSetting, setRangeSetting] = useState(() => loadRangeSetting());
   const [view, setView] = useState(() => (loadRangeSetting() ? "list" : "map"));
   const [query, setQuery] = useState("");
@@ -64,7 +64,6 @@ export default function PriceCompareReal() {
         }
 
         const priceByProduct = new Map();
-        const discounted = new Set();
         for (const [key, historyDesc] of historyByPair) {
           const [storeId, productId] = key.split(":");
           const latest = historyDesc[0];
@@ -74,7 +73,6 @@ export default function PriceCompareReal() {
             storeName: storeNameById.get(storeId) ?? "不明な店舗",
             price: latest.price,
           });
-          if (isRecentPriceDrop(historyDesc)) discounted.add(productId);
         }
 
         const merged = productsData
@@ -89,7 +87,7 @@ export default function PriceCompareReal() {
 
         setStores(storesData);
         setProducts(merged);
-        setDiscountedProductIds(discounted);
+        setHistoryByPair(historyByPair);
       } catch (e) {
         setError(e.message);
       } finally {
@@ -118,6 +116,16 @@ export default function PriceCompareReal() {
       .map((p) => ({ ...p, prices: p.prices.filter((pr) => storesInRangeIds.has(pr.storeId)) }))
       .filter((p) => p.prices.length > 0);
   }, [products, storesInRangeIds]);
+
+  const discountedProductIds = useMemo(() => {
+    const discounted = new Set();
+    for (const [key, historyDesc] of historyByPair) {
+      const [storeId, productId] = key.split(":");
+      if (storesInRangeIds && !storesInRangeIds.has(storeId)) continue;
+      if (isRecentPriceDrop(historyDesc)) discounted.add(productId);
+    }
+    return discounted;
+  }, [historyByPair, storesInRangeIds]);
 
   const productById = useMemo(() => new Map(productsInRange.map((p) => [p.id, p])), [productsInRange]);
 
