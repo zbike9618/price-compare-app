@@ -32,11 +32,11 @@ export async function getStoreByName(name) {
   return rows?.[0] ?? null;
 }
 
-export async function upsertProduct({ janCode, name, category, genericName }) {
+export async function upsertProduct({ janCode, name, category }) {
   const rows = await rest("products?on_conflict=jan_code", {
     method: "POST",
     headers: { prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify([{ jan_code: janCode, name, category, generic_name: genericName }]),
+    body: JSON.stringify([{ jan_code: janCode, name, category }]),
   });
   return rows[0];
 }

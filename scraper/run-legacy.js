@@ -41,7 +41,6 @@ async function run(siteKey) {
           janCode: item.janCode,
           name: item.name,
           category: KEYWORD_CATEGORY[keyword],
-          genericName: keyword,
         });
         await upsertStoreProduct({
           storeId: store.id,
