@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ShoppingCart, List, MapPin, Star, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import AuthForm from "./AuthForm.jsx";
@@ -10,9 +9,8 @@ const NAV_ITEMS = [
   { id: "favorites", label: "お気に入り", icon: Star },
 ];
 
-export default function AppShell({ view, setView, children }) {
+export default function AppShell({ view, setView, children, showAuthForm, onRequestAuth, onCloseAuth }) {
   const { isLoggedIn, signOut } = useAuth();
-  const [showAuthForm, setShowAuthForm] = useState(false);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -64,7 +62,7 @@ export default function AppShell({ view, setView, children }) {
           ) : (
             <button
               type="button"
-              onClick={() => setShowAuthForm(true)}
+              onClick={onRequestAuth}
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 4px", border: "none", background: "transparent", color: "#64748b", fontSize: 10, width: "100%" }}
             >
               <LogIn size={18} />
@@ -106,7 +104,7 @@ export default function AppShell({ view, setView, children }) {
           })}
           <button
             type="button"
-            onClick={() => (isLoggedIn ? signOut() : setShowAuthForm(true))}
+            onClick={() => (isLoggedIn ? signOut() : onRequestAuth())}
             style={{
               flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 4px",
               border: "none", background: "transparent", color: "#94a3b8", fontSize: 10,
@@ -118,7 +116,7 @@ export default function AppShell({ view, setView, children }) {
         </nav>
       </div>
 
-      {showAuthForm && <AuthForm onClose={() => setShowAuthForm(false)} />}
+      {showAuthForm && <AuthForm onClose={onCloseAuth} />}
     </div>
   );
 }

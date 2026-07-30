@@ -29,6 +29,7 @@ export default function PriceCompareReal() {
   const [cart, setCart] = useState(() => new Set());
   const [cartSearch, setCartSearch] = useState("");
   const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
+  const [showAuthForm, setShowAuthForm] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -274,7 +275,13 @@ export default function PriceCompareReal() {
   if (error) return <p style={{ padding: 24, color: "#dc2626" }}>データの取得に失敗しました: {error}</p>;
 
   return (
-    <AppShell view={view} setView={setView}>
+    <AppShell
+      view={view}
+      setView={setView}
+      showAuthForm={showAuthForm}
+      onRequestAuth={() => setShowAuthForm(true)}
+      onCloseAuth={() => setShowAuthForm(false)}
+    >
       {view === "list" && (
         <ListView
           query={query}
@@ -323,7 +330,7 @@ export default function PriceCompareReal() {
           products={products}
           favoriteIds={favoriteIds}
           isLoggedIn={!!user}
-          onOpenAuth={() => setView("favorites")}
+          onOpenAuth={() => setShowAuthForm(true)}
           onToggleFavorite={toggleFavorite}
           onAddProductToCart={(id) => toggleCartKey(productKey(id))}
           cartKeys={cartKeys}
