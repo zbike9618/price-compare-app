@@ -3,7 +3,7 @@ import {
   Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package,
 } from "lucide-react";
 import ProductRow from "../components/ProductRow.jsx";
-import { genericKey } from "../lib/cartKeys.js";
+import { productKey } from "../lib/cartKeys.js";
 
 const CATEGORY_STYLE = {
   野菜: { icon: Carrot, color: "#16a34a" },
@@ -34,9 +34,8 @@ export default function ListView({
   categoryCounts,
   activeCategory,
   setActiveCategory,
-  sectionedGenericItems,
+  sectionedProducts,
   cartKeys,
-  onToggleGeneric,
   onToggleProductCart,
   favoriteIds,
   onToggleFavorite,
@@ -44,11 +43,11 @@ export default function ListView({
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
 
-  const toggleExpanded = (genericName) => {
+  const toggleExpanded = (productId) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(genericName)) next.delete(genericName);
-      else next.add(genericName);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
       return next;
     });
   };
@@ -66,7 +65,7 @@ export default function ListView({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="物の名前・商品名で検索"
+            placeholder="商品名で検索"
             style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
           />
         </div>
@@ -125,7 +124,7 @@ export default function ListView({
         })}
       </div>
 
-      {sectionedGenericItems.map((section) => {
+      {sectionedProducts.map((section) => {
         const sectionStyle = CATEGORY_STYLE[section.category] ?? DEFAULT_CATEGORY_STYLE;
         const SectionIcon = sectionStyle.icon;
         return (
@@ -135,24 +134,22 @@ export default function ListView({
               {section.category} <span style={{ fontWeight: 400, color: "#94a3b8" }}>（{section.items.length}）</span>
             </p>
             <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden" }}>
-              {section.items.map((g) => {
-                const isInCart = cartKeys.has(genericKey(g.genericName));
-                const isFavorite = g.products.some((p) => favoriteIds.has(p.id));
-                const isDiscounted = g.products.some((p) => discountedProductIds.has(p.id));
+              {section.items.map((product) => {
+                const isInCart = cartKeys.has(productKey(product.id));
+                const isFavorite = favoriteIds.has(product.id);
+                const isDiscounted = discountedProductIds.has(product.id);
                 return (
                   <ProductRow
-                    key={g.genericName}
-                    item={g}
-                    categoryStyle={CATEGORY_STYLE[g.category] ?? DEFAULT_CATEGORY_STYLE}
-                    isOpen={expanded.has(g.genericName)}
-                    onToggleExpand={() => toggleExpanded(g.genericName)}
+                    key={product.id}
+                    product={product}
+                    categoryStyle={CATEGORY_STYLE[product.category] ?? DEFAULT_CATEGORY_STYLE}
+                    isOpen={expanded.has(product.id)}
+                    onToggleExpand={() => toggleExpanded(product.id)}
                     isInCart={isInCart}
-                    onToggleCart={() => onToggleGeneric(g.genericName)}
+                    onToggleCart={() => onToggleProductCart(product.id)}
                     isFavorite={isFavorite}
-                    onToggleFavorite={() => onToggleFavorite(g.products[0].id)}
+                    onToggleFavorite={() => onToggleFavorite(product.id)}
                     isDiscounted={isDiscounted}
-                    cartKeys={cartKeys}
-                    onToggleProductCart={onToggleProductCart}
                   />
                 );
               })}
@@ -161,7 +158,7 @@ export default function ListView({
         );
       })}
 
-      {sectionedGenericItems.length === 0 && (
+      {sectionedProducts.length === 0 && (
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
           該当する商品がありません
         </div>
