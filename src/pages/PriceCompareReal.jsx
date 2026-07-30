@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
 import { isRecentPriceDrop } from "../lib/discount.js";
-import { genericKey, productKey } from "../lib/cartKeys.js";
+import { productKey } from "../lib/cartKeys.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import AppShell from "../components/AppShell.jsx";
 import ListView from "./ListView.jsx";
@@ -39,7 +39,7 @@ export default function PriceCompareReal() {
         const [{ data: storesData, error: storesError }, { data: productsData, error: productsError }, { data: priceHistoryData, error: priceHistoryError }] =
           await Promise.all([
             supabase.from("stores").select("id,name,lat,lng").eq("is_active", true),
-            supabase.from("products").select("id,name,jan_code,category,generic_name"),
+            supabase.from("products").select("id,name,jan_code,category"),
             supabase
               .from("price_history")
               .select("store_id,product_id,price,scraped_at")
@@ -81,7 +81,6 @@ export default function PriceCompareReal() {
             name: p.name,
             janCode: p.jan_code,
             category: p.category,
-            genericName: p.generic_name || p.name,
             prices: (priceByProduct.get(p.id) ?? []).sort((a, b) => a.price - b.price),
           }))
           .filter((p) => p.prices.length > 0);
@@ -104,59 +103,30 @@ export default function PriceCompareReal() {
     return [...set].sort((a, b) => a.localeCompare(b, "ja"));
   }, [products]);
 
-  const genericItems = useMemo(() => {
-    const groups = new Map();
-    for (const p of products) {
-      if (!groups.has(p.genericName)) groups.set(p.genericName, []);
-      groups.get(p.genericName).push(p);
-    }
-    return [...groups.entries()].map(([genericName, items]) => {
-      const sortedItems = [...items].sort((a, b) => a.prices[0].price - b.prices[0].price);
-      const cheapestProduct = sortedItems[0];
-      const allPrices = items.flatMap((p) => p.prices.map((pr) => pr.price));
-      return {
-        genericName,
-        category: cheapestProduct.category,
-        products: sortedItems,
-        cheapestPrice: cheapestProduct.prices[0].price,
-        highestPrice: Math.max(...allPrices),
-        cheapestStoreName: cheapestProduct.prices[0].storeName,
-        cheapestProductName: cheapestProduct.name,
-      };
-    });
-  }, [products]);
-
-  const genericItemByName = useMemo(() => new Map(genericItems.map((g) => [g.genericName, g])), [genericItems]);
-
   const categoryCounts = useMemo(() => {
     const counts = new Map();
-    for (const g of genericItems) counts.set(g.category, (counts.get(g.category) ?? 0) + 1);
+    for (const p of products) counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
     return counts;
-  }, [genericItems]);
+  }, [products]);
 
-  const filteredGenericItems = useMemo(() => {
-    let list = genericItems.filter(
-      (g) =>
-        (g.genericName.includes(query) || g.products.some((p) => p.name.includes(query))) &&
-        (activeCategory === null || g.category === activeCategory)
+  const sectionedProducts = useMemo(() => {
+    let list = products.filter(
+      (p) => p.name.includes(query) && (activeCategory === null || p.category === activeCategory)
     );
     list = [...list].sort((a, b) => {
-      if (sortBy === "priceAsc") return a.cheapestPrice - b.cheapestPrice;
-      if (sortBy === "priceDesc") return b.cheapestPrice - a.cheapestPrice;
-      if (sortBy === "name") return a.genericName.localeCompare(b.genericName, "ja");
+      if (sortBy === "priceAsc") return a.prices[0].price - b.prices[0].price;
+      if (sortBy === "priceDesc") return b.prices[0].price - a.prices[0].price;
+      if (sortBy === "name") return a.name.localeCompare(b.name, "ja");
       return 0;
     });
-    return list;
-  }, [genericItems, query, activeCategory, sortBy]);
 
-  const sectionedGenericItems = useMemo(() => {
     const groups = new Map();
-    for (const g of filteredGenericItems) {
-      if (!groups.has(g.category)) groups.set(g.category, []);
-      groups.get(g.category).push(g);
+    for (const p of list) {
+      if (!groups.has(p.category)) groups.set(p.category, []);
+      groups.get(p.category).push(p);
     }
     return categories.filter((c) => groups.has(c)).map((c) => ({ category: c, items: groups.get(c) }));
-  }, [filteredGenericItems, categories]);
+  }, [products, query, activeCategory, sortBy, categories]);
 
   const toggleCartKey = (key) => {
     setCart((prev) => {
@@ -170,50 +140,32 @@ export default function PriceCompareReal() {
   const cartEntries = useMemo(() => {
     return [...cart]
       .map((key) => {
-        if (key.startsWith("g:")) {
-          const genericName = key.slice(2);
-          const group = genericItemByName.get(genericName);
-          if (!group) return null;
-          return {
-            key,
-            label: `${genericName}（最安: ${group.cheapestProductName}）`,
-            priceAtStore: (storeId) => {
-              const prices = group.products
-                .map((p) => p.prices.find((pr) => pr.storeId === storeId))
-                .filter(Boolean);
-              if (prices.length === 0) return null;
-              return Math.min(...prices.map((pr) => pr.price));
-            },
-            representativePrice: group.cheapestPrice,
-          };
-        }
-        if (key.startsWith("p:")) {
-          const id = key.slice(2);
-          const product = productById.get(id);
-          if (!product) return null;
-          return {
-            key,
-            label: product.name,
-            priceAtStore: (storeId) => product.prices.find((pr) => pr.storeId === storeId)?.price ?? null,
-            representativePrice: product.prices[0].price,
-          };
-        }
-        return null;
+        const id = key.slice(2);
+        const product = productById.get(id);
+        if (!product) return null;
+        return {
+          key,
+          label: product.name,
+          priceAtStore: (storeId) => product.prices.find((pr) => pr.storeId === storeId)?.price ?? null,
+          representativePrice: product.prices[0].price,
+        };
       })
       .filter(Boolean);
-  }, [cart, genericItemByName, productById]);
+  }, [cart, productById]);
 
   const builtinPresets = useMemo(() => {
     return BUILTIN_PRESETS.map((preset) => {
-      const matched = preset.keywords
-        .map((kw) => genericItems.find((g) => g.genericName.includes(kw)) || products.find((p) => p.name.includes(kw)))
+      const keys = preset.keywords
+        .map((kw) => {
+          const matches = products.filter((p) => p.name.includes(kw));
+          if (matches.length === 0) return null;
+          const cheapest = matches.reduce((min, p) => (p.prices[0].price < min.prices[0].price ? p : min));
+          return productKey(cheapest.id);
+        })
         .filter(Boolean);
-      return {
-        ...preset,
-        keys: matched.map((m) => (m.genericName !== undefined && m.products ? genericKey(m.genericName) : productKey(m.id))),
-      };
+      return { ...preset, keys };
     }).filter((preset) => preset.keys.length > 0);
-  }, [genericItems, products]);
+  }, [products]);
 
   const applyKeys = (keys) => {
     setCart((prev) => {
@@ -230,11 +182,7 @@ export default function PriceCompareReal() {
 
   const handleSaveCurrentAsPreset = (name) => {
     const janCodes = cartEntries
-      .map((entry) => {
-        if (entry.key.startsWith("p:")) return productById.get(entry.key.slice(2))?.janCode;
-        const genericName = entry.key.slice(2);
-        return genericItemByName.get(genericName)?.products[0]?.janCode;
-      })
+      .map((entry) => productById.get(entry.key.slice(2))?.janCode)
       .filter(Boolean);
     setCustomPresets(saveCustomPreset(name, janCodes));
   };
@@ -247,10 +195,10 @@ export default function PriceCompareReal() {
 
   const cartSearchResults = useMemo(() => {
     if (!cartSearch.trim()) return [];
-    return genericItems
-      .filter((g) => g.genericName.includes(cartSearch) && !cartKeys.has(genericKey(g.genericName)))
+    return products
+      .filter((p) => p.name.includes(cartSearch) && !cartKeys.has(productKey(p.id)))
       .slice(0, 8);
-  }, [genericItems, cartSearch, cartKeys]);
+  }, [products, cartSearch, cartKeys]);
 
   const cartStoreTotals = useMemo(() => {
     if (cartEntries.length === 0) return [];
@@ -292,9 +240,8 @@ export default function PriceCompareReal() {
           categoryCounts={categoryCounts}
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
-          sectionedGenericItems={sectionedGenericItems}
+          sectionedProducts={sectionedProducts}
           cartKeys={cartKeys}
-          onToggleGeneric={(genericName) => toggleCartKey(genericKey(genericName))}
           onToggleProductCart={(id) => toggleCartKey(productKey(id))}
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
@@ -308,8 +255,8 @@ export default function PriceCompareReal() {
           cartSearch={cartSearch}
           setCartSearch={setCartSearch}
           cartSearchResults={cartSearchResults}
-          onAddGeneric={(genericName) => {
-            toggleCartKey(genericKey(genericName));
+          onAddProduct={(id) => {
+            toggleCartKey(productKey(id));
             setCartSearch("");
           }}
           onRemoveEntry={(key) => toggleCartKey(key)}
