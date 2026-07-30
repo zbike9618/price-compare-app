@@ -526,22 +526,29 @@ git commit -m "メール/パスワードのログイン・新規登録フォー�
 ### Task 7: `ProductRow`共通コンポーネント（最安値一覧の行表示）
 
 **Files:**
+- Create: `src/lib/format.js`
 - Create: `src/components/ProductRow.jsx`
 
 **Interfaces:**
 - Consumes: なし（純粋な表示コンポーネント。カテゴリスタイルは呼び出し側から渡される）
-- Produces: `export default function ProductRow({ item, categoryStyle, isOpen, onToggleExpand, isInCart, onToggleCart, isFavorite, onToggleFavorite, isDiscounted, cartKeys, onToggleProductCart })` — `item`は`{ genericName, products, cheapestPrice, highestPrice }`形状（`products`各要素は`{ id, name, prices: [{storeId, storeName, price}] }`、`PriceCompareReal.jsx`の既存`genericItems`と同じ）。`cartKeys`は`Set<string>`（`"p:<productId>"`形式）、`onToggleProductCart(productId)`は展開時の個別商品「これを指定」ボタン用コールバック。Task 9（ListView）がこれを使う。**既存アプリの「行をクリックすると店舗別価格が展開され、個別商品を指定できる」機能をそのまま踏襲する**（favorite・値下げバッジは新規追加分のみ）
+- Produces: `export function yen(n: number): string`（`src/lib/format.js`、以降Task 10・Task 12もこれをimportして使う。価格表示ロジックを1箇所に統一する）。`export default function ProductRow({ item, categoryStyle, isOpen, onToggleExpand, isInCart, onToggleCart, isFavorite, onToggleFavorite, isDiscounted, cartKeys, onToggleProductCart })` — `item`は`{ genericName, products, cheapestPrice, highestPrice }`形状（`products`各要素は`{ id, name, prices: [{storeId, storeName, price}] }`、`PriceCompareReal.jsx`の既存`genericItems`と同じ）。`cartKeys`は`Set<string>`（`"p:<productId>"`形式）、`onToggleProductCart(productId)`は展開時の個別商品「これを指定」ボタン用コールバック。Task 9（ListView）がこれを使う。**既存アプリの「行をクリックすると店舗別価格が展開され、個別商品を指定できる」機能をそのまま踏襲する**（favorite・値下げバッジは新規追加分のみ）
 
-- [ ] **Step 1: 実装**
+- [ ] **Step 1: 価格表示の共通ヘルパーを作成（3つの新規コンポーネントで重複させないため先に切り出す）**
+
+```javascript
+// src/lib/format.js
+export function yen(n) {
+  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
+}
+```
+
+- [ ] **Step 2: ProductRowを実装**
 
 ```jsx
 // src/components/ProductRow.jsx
 import { ChevronDown, ChevronRight, Star, TrendingDown } from "lucide-react";
 import { productKey } from "../lib/cartKeys.js";
-
-function yen(n) {
-  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
-}
+import { yen } from "../lib/format.js";
 
 export default function ProductRow({
   item,
@@ -669,11 +676,11 @@ export default function ProductRow({
 }
 ```
 
-- [ ] **Step 2: コミット**
+- [ ] **Step 3: コミット**
 
 ```bash
-git add src/components/ProductRow.jsx
-git commit -m "最安値一覧の行表示を共通コンポーネントProductRowに切り出し"
+git add src/lib/format.js src/components/ProductRow.jsx
+git commit -m "最安値一覧の行表示を共通コンポーネントProductRowに切り出し、価格表示ヘルパーformat.jsを共通化"
 ```
 
 ---
@@ -976,19 +983,16 @@ git commit -m "最安値一覧ListViewをクリーン・ミニマル配色で刷
 - Create: `src/pages/ShoppingListCompare.jsx`
 
 **Interfaces:**
-- Consumes: `src/lib/presets.js`（既存、変更なし）
+- Consumes: `src/lib/presets.js`（既存、変更なし）、`yen`（Task 7で作成した`src/lib/format.js`）
 - Produces: `export default function ShoppingListCompare({ cartEntries, cartSearch, setCartSearch, cartSearchResults, onAddGeneric, onRemoveEntry, cartStoreTotals, builtinPresets, customPresets, onApplyPresetKeys, onApplyCustomPreset, onSavePreset, onDeletePreset })` — 既存`CartView`と同じprops構造。Task 14（PriceCompareReal）が使う
 
-- [ ] **Step 1: 実装（既存`CartView`のロジックはそのまま、配色のみ緑`#2F6B4A`系→青`#2563eb`系に置き換え）**
+- [ ] **Step 1: 実装（既存`CartView`のロジックはそのまま、配色のみ緑`#2F6B4A`系→青`#2563eb`系に置き換え。価格表示は`src/lib/format.js`の`yen`を使う）**
 
 ```jsx
 // src/pages/ShoppingListCompare.jsx
 import { useState } from "react";
 import { Search, Bookmark, Trash2, X, Crown } from "lucide-react";
-
-function yen(n) {
-  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
-}
+import { yen } from "../lib/format.js";
 
 export default function ShoppingListCompare({
   cartEntries,
@@ -1275,7 +1279,7 @@ git commit -m "地図ビューをMapViewとして切り出しクリーン・ミ�
 - Create: `src/pages/FavoritesView.jsx`
 
 **Interfaces:**
-- Consumes: なし
+- Consumes: `yen`（Task 7で作成した`src/lib/format.js`）
 - Produces: `export default function FavoritesView({ products, favoriteIds, isLoggedIn, onOpenAuth, onToggleFavorite, onAddProductToCart, cartKeys })` — `products`は`PriceCompareReal.jsx`の既存`products`配列（`{ id, name, category, prices: [{storeId, storeName, price}] }`）。Task 14が使う
 
 - [ ] **Step 1: 実装**
@@ -1284,10 +1288,7 @@ git commit -m "地図ビューをMapViewとして切り出しクリーン・ミ�
 // src/pages/FavoritesView.jsx
 import { Star, LogIn } from "lucide-react";
 import { productKey } from "../lib/cartKeys.js";
-
-function yen(n) {
-  return `¥${Math.round(n).toLocaleString("ja-JP")}`;
-}
+import { yen } from "../lib/format.js";
 
 export default function FavoritesView({ products, favoriteIds, isLoggedIn, onOpenAuth, onToggleFavorite, onAddProductToCart, cartKeys }) {
   if (!isLoggedIn) {
