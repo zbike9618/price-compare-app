@@ -111,6 +111,10 @@ export default function MapView({ stores, rangeSetting, inRangeStoreIds, onConfi
   }, [selecting, draftCenter, draftRadiusKm, stores, inRangeStoreIds, rangeSetting]);
 
   const handleUseCurrentLocation = () => {
+    if (!window.isSecureContext) {
+      setGeoError("現在地取得にはHTTPS接続が必要です。https://tokuchika.gozakura.com からアクセスしてください");
+      return;
+    }
     if (!navigator.geolocation) {
       setGeoError("この端末では現在地を取得できません");
       return;
