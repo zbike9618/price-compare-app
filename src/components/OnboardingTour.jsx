@@ -16,8 +16,14 @@ export default function OnboardingTour({ onClose }) {
       return;
     }
     const measure = () => {
-      const el = document.querySelector(`[data-tour-id="${current.targetId}"]`);
-      if (el) setTargetRect(el.getBoundingClientRect());
+      const candidates = document.querySelectorAll(`[data-tour-id="${current.targetId}"]`);
+      for (const el of candidates) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setTargetRect(rect);
+          return;
+        }
+      }
     };
     measure();
     window.addEventListener("resize", measure);
