@@ -251,7 +251,12 @@ export default function PriceCompareReal() {
         return { ...s, total, foundCount };
       })
       .filter((s) => s.foundCount > 0)
-      .sort((a, b) => a.total - b.total);
+      .sort((a, b) => {
+        const aComplete = a.foundCount === cartEntries.length;
+        const bComplete = b.foundCount === cartEntries.length;
+        if (aComplete !== bComplete) return aComplete ? -1 : 1;
+        return a.total - b.total;
+      });
   }, [stores, cartEntries]);
 
   const handleConfirmRange = (center, radiusKm) => {

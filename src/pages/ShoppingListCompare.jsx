@@ -168,24 +168,34 @@ export default function ShoppingListCompare({
           )}
 
           <div style={{ background: "#0f172a", borderRadius: 16, overflow: "hidden" }}>
-            {cartStoreTotals.map((s, i) => (
-              <div
-                key={s.id}
-                style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
-                  borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {i === 0 && <Crown size={16} color="#f59e0b" />}
-                  <div>
-                    <div style={{ fontSize: 13 }}>{s.name}</div>
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>{s.foundCount}/{cartEntries.length}品目が対象</div>
+            {cartStoreTotals.map((s, i) => {
+              const isComplete = s.foundCount === cartEntries.length;
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
+                    borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {i === 0 && <Crown size={16} color="#f59e0b" />}
+                    <div>
+                      <div style={{ fontSize: 13 }}>{s.name}</div>
+                      <div
+                        style={{
+                          fontSize: 11, fontWeight: isComplete ? 400 : 700,
+                          color: isComplete ? "#4ade80" : "#fb923c",
+                        }}
+                      >
+                        {isComplete ? "全品揃う店舗" : `${s.foundCount}/${cartEntries.length}品目のみ`}
+                      </div>
+                    </div>
                   </div>
+                  <div className="price-num" style={{ fontSize: 18, fontWeight: 700 }}>{yen(s.total)}</div>
                 </div>
-                <div className="price-num" style={{ fontSize: 18, fontWeight: 700 }}>{yen(s.total)}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
