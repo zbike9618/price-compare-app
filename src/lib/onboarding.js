@@ -42,3 +42,39 @@ export function markOnboardingSeen() {
     // localStorageが使えない環境では何もしない
   }
 }
+
+// 同じdata-tour-idを持つ複数要素の中から、実際に画面上で見えている要素のDOMRectを返す。
+// 判定は「ビューポートとの交差面積が最大」の候補を採用する方式（方針B）。
+// 交差面積が0（画面外・display:noneで矩形が0など）の候補は自動的に除外される。
+// checkVisibility に対応しているブラウザでは、CSSで不可視にされている要素（visibility:hidden等）も先に除外する（方針Aの併用）。
+export function findVisibleTourTarget(targetId) {
+  const candidates = document.querySelectorAll(`[data-tour-id="${targetId}"]`);
+
+  let best = null;
+  let bestArea = 0;
+
+  for (const el of candidates) {
+    if (typeof el.checkVisibility === "function") {
+      try {
+        if (!el.checkVisibility({ checkVisibilityCSS: true })) continue;
+      } catch {
+        // checkVisibilityが例外を投げる環境では無視して面積判定に委ねる
+      }
+    }
+
+    const rect = el.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const intersectWidth = Math.max(0, Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0));
+    const intersectHeight = Math.max(0, Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0));
+    const area = intersectWidth * intersectHeight;
+
+    if (area > bestArea) {
+      bestArea = area;
+      best = rect;
+    }
+  }
+
+  return best;
+}

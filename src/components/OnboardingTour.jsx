@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
-import { ONBOARDING_STEPS, markOnboardingSeen } from "../lib/onboarding.js";
+import { ONBOARDING_STEPS, markOnboardingSeen, findVisibleTourTarget } from "../lib/onboarding.js";
 
 export default function OnboardingTour({ onClose }) {
   const [mode, setMode] = useState("tour");
@@ -16,18 +16,17 @@ export default function OnboardingTour({ onClose }) {
       return;
     }
     const measure = () => {
-      const candidates = document.querySelectorAll(`[data-tour-id="${current.targetId}"]`);
-      for (const el of candidates) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          setTargetRect(rect);
-          return;
-        }
-      }
+      const rect = findVisibleTourTarget(current.targetId);
+      setTargetRect(rect);
     };
     measure();
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    // captureフェーズで登録することで、ネストしたスクロールコンテナのスクロールも拾う
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
   }, [mode, current.targetId]);
 
   const finish = () => {
@@ -65,12 +64,14 @@ export default function OnboardingTour({ onClose }) {
     </div>
   );
 
-  if (mode === "modal") {
+  // ツアー型で対象要素が見つからない場合は、モーダル型相当の見た目にフォールバックする
+  // （Leafletの上に何も表示されない・無言でツアーが消えるのを防ぐ）
+  if (mode === "modal" || (mode === "tour" && !targetRect)) {
     return (
       <div
         style={{
           position: "fixed", inset: 0, background: "rgba(15,23,42,0.55)",
-          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16,
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 16,
         }}
       >
         <div style={{ background: "#fff", borderRadius: 16, padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -117,8 +118,8 @@ export default function OnboardingTour({ onClose }) {
     );
   }
 
-  // ツアー型: 対象要素の位置が取れるまでは何も描画しない
-  if (!targetRect) return null;
+  // ここに到達する時点で mode === "tour" かつ targetRect は必ず存在する
+  // （targetRectがnullの場合は上のフォールバック分岐でモーダル型として描画済み）
 
   const pad = 8;
   const holeStyle = {
@@ -129,7 +130,7 @@ export default function OnboardingTour({ onClose }) {
     height: targetRect.height + pad * 2,
     borderRadius: 12,
     boxShadow: "0 0 0 9999px rgba(15,23,42,0.65)",
-    zIndex: 200,
+    zIndex: 2000,
     pointerEvents: "none",
   };
 
@@ -138,7 +139,7 @@ export default function OnboardingTour({ onClose }) {
   const showAbove = targetRect.top > window.innerHeight / 2;
   const tooltipStyle = {
     position: "fixed",
-    zIndex: 201,
+    zIndex: 2001,
     background: "#0f172a",
     color: "#fff",
     borderRadius: 12,
