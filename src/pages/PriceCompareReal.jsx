@@ -6,7 +6,9 @@ import { isRecentPriceDrop } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
+import { hasSeenOnboarding } from "../lib/onboarding.js";
 import AppShell from "../components/AppShell.jsx";
+import OnboardingTour from "../components/OnboardingTour.jsx";
 import ListView from "./ListView.jsx";
 import ShoppingListCompare from "./ShoppingListCompare.jsx";
 import MapView from "./MapView.jsx";
@@ -32,6 +34,7 @@ export default function PriceCompareReal() {
   const [cartSearch, setCartSearch] = useState("");
   const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
   const [showAuthForm, setShowAuthForm] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
 
   useEffect(() => {
     (async () => {
@@ -268,12 +271,14 @@ export default function PriceCompareReal() {
       : null;
 
   return (
+    <>
     <AppShell
       view={view}
       setView={setView}
       showAuthForm={showAuthForm}
       onRequestAuth={() => setShowAuthForm(true)}
       onCloseAuth={() => setShowAuthForm(false)}
+      onRequestOnboarding={() => setShowOnboarding(true)}
     >
       {view !== "map" && (
         <button
@@ -356,5 +361,7 @@ export default function PriceCompareReal() {
         />
       )}
     </AppShell>
+    {showOnboarding && <OnboardingTour onClose={() => setShowOnboarding(false)} />}
+    </>
   );
 }
