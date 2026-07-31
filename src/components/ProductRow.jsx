@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight, Star, TrendingDown } from "lucide-react";
+import { ChevronDown, ChevronRight, Star, TrendingDown, AlertTriangle } from "lucide-react";
 import { yen } from "../lib/format.js";
+import { formatRelativeTime, isStalePrice } from "../lib/freshness.js";
 
 export default function ProductRow({
   product,
@@ -93,9 +94,14 @@ export default function ProductRow({
 
       {isOpen && others.length > 0 && (
         <div style={{ background: "#f8fafc", padding: "8px 16px 10px 34px", fontSize: 11, color: "#94a3b8" }}>
-          {cheapest.storeName} {yen(cheapest.price)}
-          {others.map((o) => (
-            <span key={o.storeId}> ・ {o.storeName} {yen(o.price)}</span>
+          {[cheapest, ...others].map((o, i) => (
+            <div key={o.storeId} style={{ display: "flex", alignItems: "center", gap: 4, marginTop: i === 0 ? 0 : 4 }}>
+              <span>{o.storeName} {yen(o.price)}</span>
+              <span style={{ color: isStalePrice(o.scrapedAt) ? "#d97706" : "#cbd5e1" }}>
+                （{formatRelativeTime(o.scrapedAt)}）
+              </span>
+              {isStalePrice(o.scrapedAt) && <AlertTriangle size={11} color="#d97706" />}
+            </div>
           ))}
         </div>
       )}

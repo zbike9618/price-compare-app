@@ -75,6 +75,7 @@ export default function PriceCompareReal() {
             storeId,
             storeName: storeNameById.get(storeId) ?? "不明な店舗",
             price: latest.price,
+            scrapedAt: latest.scrapedAt,
           });
         }
 
