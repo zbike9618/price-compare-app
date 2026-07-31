@@ -1,4 +1,4 @@
-import { ShoppingCart, List, MapPin, Star, LogIn, LogOut } from "lucide-react";
+import { ShoppingCart, List, MapPin, Star, LogIn, LogOut, HelpCircle } from "lucide-react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import AuthForm from "./AuthForm.jsx";
 
@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { id: "favorites", label: "お気に入り", icon: Star },
 ];
 
-export default function AppShell({ view, setView, children, showAuthForm, onRequestAuth, onCloseAuth }) {
+export default function AppShell({ view, setView, children, showAuthForm, onRequestAuth, onCloseAuth, onRequestOnboarding }) {
   const { isLoggedIn, signOut } = useAuth();
 
   return (
@@ -37,6 +37,7 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
             <button
               key={item.id}
               type="button"
+              data-tour-id={item.id}
               onClick={() => setView(item.id)}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 4px",
@@ -49,6 +50,14 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
             </button>
           );
         })}
+        <button
+          type="button"
+          onClick={onRequestOnboarding}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 4px", border: "none", background: "transparent", color: "#64748b", fontSize: 10, width: "100%" }}
+        >
+          <HelpCircle size={18} />
+          使い方
+        </button>
         <div style={{ marginTop: "auto" }}>
           {isLoggedIn ? (
             <button
@@ -91,6 +100,7 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
               <button
                 key={item.id}
                 type="button"
+                data-tour-id={item.id}
                 onClick={() => setView(item.id)}
                 style={{
                   flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 4px",
@@ -112,6 +122,17 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
           >
             {isLoggedIn ? <LogOut size={18} /> : <LogIn size={18} />}
             {isLoggedIn ? "ログアウト" : "ログイン"}
+          </button>
+          <button
+            type="button"
+            onClick={onRequestOnboarding}
+            style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 4px",
+              border: "none", background: "transparent", color: "#94a3b8", fontSize: 10,
+            }}
+          >
+            <HelpCircle size={18} />
+            使い方
           </button>
         </nav>
       </div>
