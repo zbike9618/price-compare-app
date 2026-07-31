@@ -1,55 +1,65 @@
-# 実用性強化（SaaS化に向けた機能追加） 設計
+# 実用性強化（外部評価を踏まえた品質改善） 設計
 
 ## 背景・目的
-成果発表（学校の探究課題）に向け、「個人が作ったデモ」ではなく「実際に人が使おうと思うもの」であることを裏付けるため、以下5つの機能を追加する。
+成果発表（学校の探究課題）に向け、「個人が作ったデモ」ではなく「実際に人が使おうと思うもの」であることを裏付ける。当初は機能追加（シェア・価格推移グラフ・自動更新等）を検討したが、外部評価（Codexによるレビュー、`tokuchika-evaluation.md`）を受け、**信頼性・品質面の改善を優先**する方針に転換した。
+
+## 経緯（スコープ変更の記録）
+- 当初案: LP整備・毎日自動更新・シェア機能・価格推移グラフ・PWA化の5機能
+- Codexによる外部評価で、charset未指定・価格鮮度の不透明さ・店舗別合計比較の公平性リスク・geolocationのHTTPS制約・OGP/manifest不足・キャッシュ設定が短いことが指摘された
+- Z判断: 評価の優先改善項目を全て取り込み、当初案のうちシェア機能・価格推移グラフ・毎日自動更新は今回見送り、LP整備・PWA化のみ残す
+- 「サーバー側集計への移行」（評価の優先改善2番目）は、既存のデータ取得ロジック全体を作り直す規模でありリスクが高いため、今回は実装せず`project.md`のbacklogに記録するに留める
 
 ## スコープ
 
-1. **公式LP整備**: `src/pages/LandingPage.jsx`の数値・導線を実データに更新
-2. **毎日自動更新**: LXC114にsystemdタイマーを新設し、5店舗分のスクレイパーを毎日自動実行
-3. **シェア機能**: 買い物リストをURLで共有（バックエンド変更なし）
-4. **価格推移グラフ**: お気に入り画面で商品ごとの直近30日価格推移を表示（recharts活用）
-5. **PWA化**: ホーム画面に追加してアプリ風に起動できるようにする（`manifest.json`のみ、Service Workerなし）
+1. **公式LP整備**: 実データの数値に更新
+2. **HTTPレスポンスヘッダー改善**: charset明示・ハッシュ付きアセットの長期キャッシュ化（nginx設定、コントローラーが直接実施）
+3. **価格の鮮度表示**: 商品ごとに「何時間前の価格か」を表示し、古いデータには注意表示を出す
+4. **店舗別合計比較の公平性表示**: 「5品中3品のみ」等の欠品情報を強調し、全品揃う店舗を優先表示する
+5. **geolocationのHTTPS案内**: LAN内HTTP版（`192.168.11.114`）で現在地機能を使おうとした際、失敗理由と公開HTTPS版へのリンクを案内する
+6. **PWA化・OGP整備**: `manifest.json`・OGPメタタグ・`meta description`・favicon確認・theme-color
 
 ## 1. 公式LP整備
 
 - `src/pages/LandingPage.jsx`の統計値を実データに更新: `{ value: "3", unit: "店舗" }` → `{ value: "5", unit: "店舗" }`、`{ value: "3,300", unit: "件超" }` → `{ value: "3,850", unit: "件超" }`
-- `ROADMAP`配列のうち「対応エリア・対応店舗の拡大」は5店舗まで拡大済みのため`done: true`に変更（「対応エリア拡大」の文言は「岡山市内での店舗拡大」に近い状態のため、ラベルを「岡山エリア内の店舗拡大」に変更し完了扱いにする）
-- 「単価(¥/100g等)表示」は本設計の対象外（今回は価格推移グラフ・シェア機能等を優先するため）なので`done: false`のまま維持
-- CTAリンク（`/app.html`、2箇所）は相対パスのままで問題ない（LP自体が`tokuchika.gozakura.com`や`192.168.11.114`のどちらでホストされても同一オリジンの`/app.html`に飛ぶため、変更不要）
+- `ROADMAP`配列の「対応エリア・対応店舗の拡大」を`done: true`に変更（ラベルを「岡山エリア内の店舗拡大（5店舗）」に更新）
 
-## 2. 毎日自動更新（systemdタイマー）
+## 2. HTTPレスポンスヘッダー改善（nginx、コントローラー実施）
 
-- 対象: `scraper/run-aeon.js`（イオン岡山店）・`run-aeon-aoe.js`（岡山青江）・`run-aeon-kurashiki.js`（倉敷）・`run-legacy.js marui`・`run-legacy.js nishina`の5スクリプトを順次実行
-- LXC114上に`/opt/price-compare-scraper/run-daily.sh`（新規）を配置し、上記5スクリプトを`SUPABASE_URL`・`SUPABASE_SERVICE_ROLE_KEY`環境変数付きで順番に実行するシェルスクリプトとする（1つが失敗しても後続は続行し、最後にエラー件数をログに残す）
-- スクレイパーのソースコード自体（`scraper/`ディレクトリ）をLXC114上にデプロイする必要がある（現状はフロントエンドのビルド成果物のみデプロイされており、スクレイパーはこのWindows開発機からしか実行していない）。`scp`でNode.jsスクリプト一式を転送し、LXC114上で`npm install`する
-- systemd unit（`price-compare-scraper.service`、`Type=oneshot`）とtimer（`price-compare-scraper.timer`、`OnCalendar=*-*-* 03:00:00`、深夜3時）を新設し、`systemctl enable --now`する
-- この作業はコントローラー（私）がSSH経由で直接実施する（サブエージェントには委譲しない。本番サーバーへの新規ソフトウェア配置・systemd設定という性質上、都度Zの確認を要する可能性があるため）
+LXC114の`/etc/nginx/sites-enabled/price-compare-app`を編集する:
+- `text/html`レスポンスに`charset=utf-8`を明示: `charset utf-8;`をserverブロックに追加
+- ハッシュ付きの`dist/assets/`配下（Viteが生成する`[name]-[hash].js`/`.css`）に対して`Cache-Control: public, max-age=31536000, immutable`を設定する`location`ブロックを追加（`app.html`・`index.html`本体は逆に短いキャッシュのままでよい。更新のたびにコンテンツが変わるファイルだけを長期キャッシュ対象から除外する）
 
-## 3. シェア機能（URLエンコード方式）
+## 3. 価格の鮮度表示
 
-- `src/lib/cartKeys.js`に、カートの`Set<string>`（例: `p:<productId>`・`g:<productId>`形式のキー、既存の`productKey`関数が生成する形式）をURLセーフな文字列にエンコード/デコードする関数を追加する: `encodeCartToShareParam(cartKeys: Set<string>): string`・`decodeCartFromShareParam(param: string): string[]`
-  - エンコード方式: カートキーの配列をJSON化 → `encodeURIComponent`ではなくBase64url（`btoa`をURLセーフ化: `+`→`-`、`/`→`_`、末尾`=`除去）でエンコードする。商品IDはUUID形式のため、素朴なJSON+Base64で十分小さく収まる（1商品あたり概算50バイト程度、10商品でも500バイト程度でURL長制限に収まる）
-- `ShoppingListCompare.jsx`（買い物リスト比較画面）に「リストを共有」ボタンを追加。クリックで現在のカート内容を`encodeCartToShareParam`でエンコードし、`https://tokuchika.gozakura.com/app.html?share=<encoded>`形式のURLをクリップボードにコピーする（`navigator.clipboard.writeText`、失敗時はテキストを選択状態にして手動コピーを促すフォールバック）
-- `PriceCompareReal.jsx`のマウント時（初回のみ）に`URLSearchParams`から`share`パラメータを検出し、`decodeCartFromShareParam`でデコードして`cart` stateに反映する。デコードに失敗した場合（不正なURL等）は無視して通常起動する
-- 共有元のURLに`?share=...`が残り続けるとリロードのたびに再適用されて煩わしいため、反映後は`history.replaceState`でクエリを除去する
+- 既に`PriceCompareReal.jsx`は`price_history`を直近30日分取得しており、`historyByPair`（`Map<"storeId:productId", {price, scrapedAt}[]>`、新しい順にソート済み）としてstateに保持している。**新規のSupabaseクエリは不要**で、この既存データから鮮度情報を導出する
+- `src/lib/freshness.js`（新規）: `scrapedAt`（ISO文字列）を受け取り、「3時間前」「2日前」のような相対時間文字列を返す`formatRelativeTime(isoString)`関数と、24時間以上前なら`true`を返す`isStalePrice(isoString)`関数を実装する
+- `products`配列の各要素の`prices[]`（店舗ごとの価格情報）に、対応する`historyByPair`のエントリから取得した`scrapedAt`を持たせる（`PriceCompareReal.jsx`の`priceByProduct`構築部分で、`latest.scrapedAt`を`price`と一緒に格納するよう1行追加する）
+- `ProductRow.jsx`の展開時の店舗別価格一覧に、`formatRelativeTime`で算出した鮮度文字列を小さく表示し、`isStalePrice`が`true`の場合は注意アイコン（`AlertTriangle`、lucide-react）と薄い警告色で「取得から時間が経っています」を添える
 
-## 4. 価格推移グラフ
+## 4. 店舗別合計比較の公平性表示
 
-- `src/pages/FavoritesView.jsx`の各お気に入り商品行に展開トグル（既存の`ProductRow.jsx`が持つ`isOpen`/`onToggleExpand`と同様のUIパターン）を追加し、展開時に`PriceHistoryChart.jsx`（新規コンポーネント）を表示する
-- `PriceHistoryChart`は、対象商品IDに対する`price_history`を直近30日分・店舗横断で取得し（Supabaseへの新規クエリ、`select("store_id,price,scraped_at").eq("product_id", id).gte("scraped_at", thirtyDaysAgoIso).order("scraped_at")）、rechartsの`LineChart`で日付×価格の折れ線を描画する。複数店舗のデータがある場合は店舗ごとに別系列（別の色の線）として重ねる
-- データ取得は展開時に初めて行う（遅延ロード。全お気に入り商品分を一度に取得すると無駄なクエリが増えるため）
-- 直近30日でデータ点が1件しかない商品（値動きがない）の場合は、グラフの代わりに「直近30日、価格の変動はありません」という文言を表示する
+- `PriceCompareReal.jsx`の`cartStoreTotals`（`useMemo`で計算済み、`{ id, name, total, foundCount }[]`を`total`昇順でソート）の並び順ロジックを変更する: 現状は単純に合計金額の安い順だが、まず「全品揃う店舗（`foundCount === cartEntries.length`）」を優先グループとして先頭にまとめ、その中で金額が安い順に並べ、次に「一部欠品の店舗」を金額順で続ける2段階ソートに変更する
+- `ShoppingListCompare.jsx`の店舗別合計表示（`cartStoreTotals.map`部分）で、`s.foundCount === cartEntries.length`の場合は「全品揃う」バッジ（緑）を、そうでない場合は現在の`{foundCount}/{cartEntries.length}品目が対象`の文字を、より目立つオレンジ系の色・太字に変更して「未取得あり」であることを強調する
 
-## 5. PWA化（ホーム画面追加のみ）
+## 5. geolocationのHTTPS案内
 
-- `public/manifest.json`（新規）: `name`・`short_name`・`start_url: "/app.html"`・`display: "standalone"`・`background_color`・`theme_color: "#2563eb"`・`icons`（192x192・512x512の2サイズ、既存のfaviconやアプリのアクセントカラーを元にした簡易アイコンを新規生成）を定義
-- アイコン画像は、`sharp`で単色背景＋「最」の文字（または買い物カゴのシンプルな図形）を描いたPNGをスクリプト生成する（外部デザインツール不要、Node.jsで完結させる）
-- `app.html`の`<head>`に`<link rel="manifest" href="/manifest.json">`と`<meta name="theme-color" content="#2563eb">`を追加
-- Service Workerは実装しない（このアプリは常にSupabaseの最新価格データが必要なため、オフラインキャッシュの価値が低く、スコープ外とする）
+- `src/components/MapView.jsx`の`handleUseCurrentLocation`関数内、`navigator.geolocation`が呼ばれる前に`window.isSecureContext`をチェックする（HTTPSまたはlocalhostなら`true`、LAN内HTTPアクセスなら`false`になるブラウザ標準API）
+- `isSecureContext`が`false`の場合は、実際に位置情報取得を試みず即座に`setGeoError("現在地取得にはHTTPS接続が必要です。https://tokuchika.gozakura.com からアクセスしてください")`を呼ぶ（既存の`geoError`表示の仕組みをそのまま使う）
 
-## Global Constraints（全機能共通）
+## 6. PWA化・OGP整備
 
-- 新規の外部npmパッケージは、rechartsは既存依存（`package.json`に既にある）なので追加不要。それ以外（Base64エンコード等）もブラウザ標準API（`btoa`/`atob`）で完結させ、新規パッケージは追加しない
+- `public/manifest.json`（新規）: `name: "近くのスーパー、最安値くらべ"`・`short_name: "最安値くらべ"`・`start_url: "/app.html"`・`display: "standalone"`・`background_color: "#ffffff"`・`theme_color: "#2563eb"`・`icons`（192x192・512x512の2サイズ）
+- アイコン画像は`sharp`で生成するスクリプトを一時的に使い、`public/icon-192.png`・`public/icon-512.png`として書き出す（青地に白文字「¥」など、シンプルな図形で構わない）
+- `app.html`の`<head>`に以下を追加:
+  - `<link rel="manifest" href="/manifest.json">`
+  - `<meta name="theme-color" content="#2563eb">`
+  - `<meta name="description" content="岡山市内のネットスーパー5店舗の価格を自動収集し、最安値・買い物リストごとの合計金額を比較できるアプリ。">`
+  - OGPタグ（`og:title`・`og:description`・`og:type`・`og:url`・`og:image`。`og:image`は`public/`に置く簡易画像でよい）
+- `index.html`（LP）にも同様に`meta description`・OGPタグを追加する（LPはSNS等でシェアされる可能性が`app.html`より高いため）
+
+## Global Constraints（全項目共通）
+
+- 新規の外部npmパッケージは追加しない（`sharp`はアイコン生成の一時利用のみで、ビルド成果物の依存には含まれない）
 - 既存コードのインラインstyleオブジェクトによるスタイリング規約に合わせる
-- DBスキーマの変更は行わない（`price_history`は既存テーブルをそのまま読むのみ）
+- DBスキーマの変更は行わない（既存の`price_history`取得ロジックを維持し、新規クエリを追加しない）
+- 「サーバー側集計への移行」は本設計のスコープ外。`project.md`のタスクとして別途記録する
