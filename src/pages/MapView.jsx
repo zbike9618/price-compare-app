@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { ACCENT } from "../lib/theme.js";
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+// 店舗ピンはLeaflet標準の青いアイコンではなく、アプリのアクセントカラーに合わせたやさしい色にする
+const storeIcon = L.divIcon({
+  className: "",
+  html: `<svg width="30" height="42" viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));">
+    <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.7 23.3 0 15 0z" fill="${ACCENT}"/>
+    <circle cx="15" cy="15" r="6" fill="#fff"/>
+  </svg>`,
+  iconSize: [30, 42],
+  iconAnchor: [15, 40],
+  popupAnchor: [0, -38],
 });
 
 const OKAYAMA_CITY_CENTER = { lat: 34.6551, lng: 133.9195 };
@@ -83,14 +85,14 @@ export default function MapView({ stores, rangeSetting, inRangeStoreIds, onConfi
 
       markersRef.current.push(
         ...withCoords.map((s) => {
-          const marker = L.marker([s.lat, s.lng]).addTo(map).bindPopup(s.name);
+          const marker = L.marker([s.lat, s.lng], { icon: storeIcon }).addTo(map).bindPopup(s.name);
           marker.setOpacity(0.5);
           return marker;
         })
       );
     } else {
       markersRef.current = withCoords.map((s) => {
-        const marker = L.marker([s.lat, s.lng]).addTo(map).bindPopup(s.name);
+        const marker = L.marker([s.lat, s.lng], { icon: storeIcon }).addTo(map).bindPopup(s.name);
         if (inRangeStoreIds && !inRangeStoreIds.has(s.id)) marker.setOpacity(0.35);
         return marker;
       });

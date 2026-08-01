@@ -45,7 +45,7 @@ export default function OnboardingTour({ onClose }) {
     <button
       type="button"
       onClick={() => setMode(mode === "tour" ? "modal" : "tour")}
-      style={{ border: "none", background: "transparent", color: "#93c5fd", fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+      style={{ border: "none", background: "transparent", color: "#FFCBB6", fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
     >
       {mode === "tour" ? "一覧形式で見る" : "画面上で見る"}
     </button>
@@ -159,10 +159,10 @@ export default function OnboardingTour({ onClose }) {
       <div style={holeStyle} />
       <div style={tooltipStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <span style={{ fontSize: 13, color: "#93c5fd", fontWeight: 700 }}>
+          <span style={{ fontSize: 13, color: "#FFCBB6", fontWeight: 700 }}>
             使い方（{step + 1}/{ONBOARDING_STEPS.length}）
           </span>
-          <button type="button" onClick={finish} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#93c5fd" }}>
+          <button type="button" onClick={finish} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#FFCBB6" }}>
             <X size={18} />
           </button>
         </div>
