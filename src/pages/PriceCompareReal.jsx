@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
-import { computeDiscountInfo, computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
+import { computeDiscountInfo, computeStoreDiscountRates, isPriceDrop, isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
@@ -84,6 +84,7 @@ export default function PriceCompareReal() {
             scrapedAt: latest.scrapedAt,
             min30: thirtyDayLowPrice(historyDesc),
             discount: computeDiscountInfo(historyDesc),
+            isNewLow: isRecentPriceDrop(historyDesc),
           });
         }
 
@@ -134,7 +135,7 @@ export default function PriceCompareReal() {
     for (const [key, historyDesc] of historyByPair) {
       const [storeId, productId] = key.split(":");
       if (storesInRangeIds && !storesInRangeIds.has(storeId)) continue;
-      if (isRecentPriceDrop(historyDesc)) discounted.add(productId);
+      if (isPriceDrop(historyDesc)) discounted.add(productId);
     }
     return discounted;
   }, [historyByPair, storesInRangeIds]);

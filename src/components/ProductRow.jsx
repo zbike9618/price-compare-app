@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { ChevronDown, ChevronRight, Star, TrendingDown, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronRight, Star, TrendingDown, AlertTriangle, Award } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { formatRelativeTime, isStalePrice } from "../lib/freshness.js";
 import { ACCENT } from "../lib/theme.js";
@@ -27,6 +27,7 @@ export default function ProductRow({
   // 表示中の最安値の店で値下げしていなくても、他の店で値下げしていれば
   // バッジには気付けるようにする（「値下げ中」タブとの表示の食い違いを防ぐ）
   const summaryDiscount = cheapest.discount ?? others.find((o) => o.discount)?.discount ?? null;
+  const summaryIsNewLow = cheapest.isNewLow || others.some((o) => o.isNewLow);
 
   return (
     <div style={{ borderTop: "1px solid #f1f5f9" }}>
@@ -80,6 +81,16 @@ export default function ProductRow({
                   <TrendingDown size={12} /> {summaryDiscount ? `${summaryDiscount.pct}%引き` : "値下げ"}
                 </span>
               )}
+              {summaryIsNewLow && (
+                <span
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 3, background: "#fef3c7", color: "#b45309",
+                    fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
+                  }}
+                >
+                  <Award size={12} /> 30日で最安
+                </span>
+              )}
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8" }}>
               {others.length > 0 ? `${product.prices.length}店舗で比べられます` : "1店舗のみ"}
@@ -126,6 +137,11 @@ export default function ProductRow({
                 （{formatRelativeTime(o.scrapedAt)}）
               </span>
               {isStalePrice(o.scrapedAt) && <AlertTriangle size={13} color="#d97706" />}
+              {o.isNewLow && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 3, color: "#b45309", fontWeight: 700 }}>
+                  <Award size={12} /> 30日で最安
+                </span>
+              )}
               {o.min30 != null && o.min30 < o.price && (
                 <span style={{ color: "#16a34a" }}>30日でいちばん安いのは {yen(o.min30)}</span>
               )}

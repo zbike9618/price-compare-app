@@ -1,26 +1,36 @@
 // src/lib/discount.js
 
 /**
- * 直近30日分の価格履歴（新しい順）から、直近の価格が「値下げによる30日最安値更新」かどうかを判定する。
+ * 直近の価格が、その前のスクレイピング時より安いかどうかを判定する（シンプルな値下げ判定）。
+ * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順（最新が先頭）で並んだ、直近30日分の価格履歴
+ * @returns {boolean}
+ */
+export function isPriceDrop(historyDesc) {
+  if (!historyDesc || historyDesc.length < 2) return false;
+  const [latest, previous] = historyDesc;
+  return latest.price < previous.price;
+}
+
+/**
+ * 直近30日分の価格履歴（新しい順）から、直近の価格が「値下げによる30日最安値の更新」かどうかを判定する。
+ * isPriceDropより厳しい条件（別バッジ「30日で最安値更新」用）。
  * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順（最新が先頭）で並んだ、直近30日分の価格履歴
  * @returns {boolean}
  */
 export function isRecentPriceDrop(historyDesc) {
-  if (!historyDesc || historyDesc.length < 2) return false;
-  const [latest, previous] = historyDesc;
-  if (latest.price >= previous.price) return false;
+  if (!isPriceDrop(historyDesc)) return false;
   const minPrice = Math.min(...historyDesc.map((h) => h.price));
-  return latest.price === minPrice;
+  return historyDesc[0].price === minPrice;
 }
 
 /**
- * 値下げ幅（金額・割合）を算出する。isRecentPriceDropがtrueの場合のみ値を返し、
+ * 値下げ幅（金額・割合）を算出する。isPriceDropがtrueの場合のみ値を返し、
  * それ以外（値下げでない）はnullを返す。
  * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順で並んだ、直近30日分の価格履歴
  * @returns {{ diff: number, pct: number } | null}
  */
 export function computeDiscountInfo(historyDesc) {
-  if (!isRecentPriceDrop(historyDesc)) return null;
+  if (!isPriceDrop(historyDesc)) return null;
   const [latest, previous] = historyDesc;
   const diff = previous.price - latest.price;
   const pct = Math.round((diff / previous.price) * 100);
