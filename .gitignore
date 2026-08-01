@@ -28,3 +28,6 @@ dist-ssr
 
 # Git worktrees for isolated feature work
 .worktrees/
+
+# AIカテゴリ分類テストスクリプトの出力
+scraper/tmp/
