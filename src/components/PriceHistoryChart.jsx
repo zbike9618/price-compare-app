@@ -19,17 +19,21 @@ export default function PriceHistoryChart({ data, storeNames }) {
           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={48} />
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0" }} formatter={(value) => yen(value)} />
           {storeNames.length > 1 && <Legend wrapperStyle={{ fontSize: 12 }} />}
-          {storeNames.map((name, i) => (
-            <Line
-              key={name}
-              type="monotone"
-              dataKey={name}
-              stroke={LINE_COLORS[i % LINE_COLORS.length]}
-              strokeWidth={2}
-              dot={false}
-              connectNulls
-            />
-          ))}
+          {storeNames.map((name, i) => {
+            const color = LINE_COLORS[i % LINE_COLORS.length];
+            return (
+              <Line
+                key={name}
+                type="monotone"
+                dataKey={name}
+                stroke={color}
+                strokeWidth={2}
+                dot={{ r: 3, strokeWidth: 0, fill: color }}
+                activeDot={{ r: 5 }}
+                connectNulls
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>
