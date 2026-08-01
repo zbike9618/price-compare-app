@@ -57,12 +57,13 @@ location = /admin.html {
     allow 127.0.0.1;
     deny all;
 }
-location ~ ^/assets/admin-.*\.(js|css)$ {
+location ^~ /assets/admin/ {
     allow 127.0.0.1;
     deny all;
 }
 ```
 - 上記以外（LP・app.html・共通アセット）は現行通り誰でもアクセス可能なまま
+- **【実装時の変更】** 当初案は`location ~ ^/assets/admin-.*\.(js|css)$`（ファイル名パターンでのブロック）だったが、最終レビューで「Rollupのチャンク分割の実装詳細に暗黙依存しており、将来`supabaseAdminClient.js`が他ページから参照されるようになるとブロック対象から漏れうる」という指摘があり、`vite.config.js`の出力設定でadmin関連ファイルを`assets/admin/`ディレクトリ配下に明示的に固定する方式に変更した。nginx側も`location ^~ /assets/admin/`というディレクトリ単位のブロックに変更し、ビルド構成の変更に対して頑健にした
 
 ## テスト
 - `src/lib/passcode.js`の`checkPasscode`（NFKC正規化を含む比較ロジック）は既存の`passcode.test.js`と同様にvitestでユニットテストする。DB取得を伴う`fetchCurrentPasscode`はSupabaseクライアントのモックを使って正常系・エラー系をテストする
@@ -70,3 +71,8 @@ location ~ ^/assets/admin-.*\.(js|css)$ {
 
 ## 未確定事項（Zが後日対応可能な点）
 - service role keyは`.env`（LXC114の`/opt/supabase/docker/.env`）から取得して`supabaseAdminClient.js`に埋め込む。既存のセッション（frontend-rebuild計画等）で取得方法は確立済み
+
+## セキュリティ上の既知の限界（最終レビューで指摘・記録）
+
+- **招待コードそのものは機密情報ではない**: `app_settings`テーブルの`passcode`列はanonキーでSELECT可能なポリシーのため、公開バンドルに含まれるanonキーを使えば誰でも`/api/rest/v1/app_settings?select=passcode`で現在のパスコードを直接取得できる。これは「厳密なアクセス制御」ではなく「URLを知らない人が迷い込むのを防ぐ簡易な導線」という位置付けであり、今回の管理画面の追加によってもこの前提は変わらない。将来、本当の意味でのアクセス制御が必要になった場合は、パスコード照合をクライアント側の直接比較ではなく、SECURITY DEFINER関数（RPC）に移す設計変更が必要
+- **`allow 127.0.0.1`は唯一の防御線であり、単一障害点である**: 現状、admin.htmlへのアクセス制御はnginxの`allow 127.0.0.1; deny all;`のみに依存している。将来LXC114に別のリバースプロキシ（Cloudflare Tunnel等）を同居させると、nginxから見た`$remote_addr`がすべて`127.0.0.1`になり得るため、この防御が意図せず無効化されるリスクがある。**リバースプロキシ・トンネル等をLXC114に追加する際は、必ずこのnginx設定（admin.html・assets/admin/のブロック）が引き続き機能しているか再検証すること**。service role keyはRLSを完全にバイパスして`favorites`等の個人データや`auth.users`まで読み書きできるため、ここが破られた場合の被害はパスコード漏洩に留まらない
