@@ -33,12 +33,14 @@ export async function getStoreByName(name) {
 }
 
 export async function upsertProduct({ janCode, name, category }) {
-  const rows = await rest("products?on_conflict=jan_code", {
+  // categoryは新規商品の初期値としてのみ使う。既存商品のcategoryはAIカテゴリ分類ステップ
+  // (apply-ai-categorize.js)が専任で管理するため、再スクレイピング時に上書きしない
+  // (upsert_product_keep_category関数、supabase/migrations/2026-08-01-upsert-product-keep-category.sql)
+  const rows = await rest("rpc/upsert_product_keep_category", {
     method: "POST",
-    headers: { prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify([{ jan_code: janCode, name, category }]),
+    body: JSON.stringify({ p_jan_code: janCode, p_name: name, p_category: category }),
   });
-  return rows[0];
+  return Array.isArray(rows) ? rows[0] : rows;
 }
 
 export async function upsertStoreProduct({ storeId, productId, productUrl }) {
@@ -49,10 +51,11 @@ export async function upsertStoreProduct({ storeId, productId, productUrl }) {
   });
 }
 
-export async function updateProductClassification({ id, category, subcategory }) {
+export async function updateProductClassification({ id, category, subcategory, aiReviewedAt }) {
   const body = {};
   if (category !== undefined) body.category = category;
   if (subcategory !== undefined) body.subcategory = subcategory;
+  if (aiReviewedAt !== undefined) body.ai_reviewed_at = aiReviewedAt;
   await rest(`products?id=eq.${id}`, {
     method: "PATCH",
     headers: { prefer: "return=minimal" },

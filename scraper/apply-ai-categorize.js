@@ -1,9 +1,13 @@
 // scraper/apply-ai-categorize.js
 // Gemini APIでのカテゴリ分類結果を本番DBに反映する。
-// - categoryOk: true  → subcategoryを更新
-// - categoryOk: false かつ suggestedCategoryが既知の10カテゴリのいずれか → categoryを更新
-// - suggestedCategory === "除外候補"（またはそれ以外の未知の値） → DBは変更せず、
-//   scraper/tmp/excluded-candidates-<date>.jsonに記録するのみ
+// ai_reviewed_atが未設定(null)の商品だけを対象にすることで、判定済みの商品を
+// 毎回AIに通し直す無駄（Gemini無料枠の消費）を避ける。
+// - categoryOk: true  → subcategoryを更新し、ai_reviewed_atを記録（以後スキップされる）
+// - categoryOk: false かつ suggestedCategoryが既知の10カテゴリのいずれか → categoryのみ更新。
+//   ai_reviewed_atは設定しない（新カテゴリ側で改めて中カテゴリ判定が必要なため、次回対象に残す）
+// - suggestedCategory === "除外候補"（またはそれ以外の未知の値） → DBのcategory/subcategoryは
+//   変更せず、ai_reviewed_atだけ記録して以後スキップ。scraper/tmp/excluded-candidates-<date>.json
+//   にも記録する
 //
 // 使い方:
 //   GEMINI_API_KEY=xxx SUPABASE_SERVICE_ROLE_KEY=xxx node scraper/apply-ai-categorize.js [カテゴリ名]
@@ -28,8 +32,14 @@ function sleep(ms) {
 
 async function processCategory(category, classifyBatch) {
   console.log(`\n=== 「${category}」カテゴリを処理します ===`);
-  const products = await fetchProductsByCategory(SUPABASE_URL, SUPABASE_ANON_KEY, category, BATCH_LIMIT_PER_CATEGORY);
-  console.log(`${products.length}件を${BATCH_SIZE}件ずつのバッチで分類・反映します...`);
+  const products = await fetchProductsByCategory(SUPABASE_URL, SUPABASE_ANON_KEY, category, BATCH_LIMIT_PER_CATEGORY, {
+    unreviewedOnly: true,
+  });
+  if (products.length === 0) {
+    console.log("未判定の商品はありません（スキップ）");
+    return { categoryUpdated: 0, subcategoryUpdated: 0, excluded: 0, failed: 0 };
+  }
+  console.log(`未判定の${products.length}件を${BATCH_SIZE}件ずつのバッチで分類・反映します...`);
 
   let categoryUpdated = 0;
   let subcategoryUpdated = 0;
@@ -55,16 +65,19 @@ async function processCategory(category, classifyBatch) {
 
       try {
         if (result.categoryOk) {
-          if (result.subcategory) {
-            await updateProductClassification({ id: product.id, subcategory: result.subcategory });
-            subcategoryUpdated += 1;
-          }
+          const patch = { id: product.id, aiReviewedAt: new Date().toISOString() };
+          if (result.subcategory) patch.subcategory = result.subcategory;
+          await updateProductClassification(patch);
+          if (result.subcategory) subcategoryUpdated += 1;
         } else if (CATEGORIES.includes(result.suggestedCategory)) {
+          // 新カテゴリ側で改めて中カテゴリ判定が必要なため、ai_reviewed_atは設定しない
           await updateProductClassification({ id: product.id, category: result.suggestedCategory });
           categoryUpdated += 1;
           console.log(`  [category更新] ${product.name}: ${category} → ${result.suggestedCategory}`);
         } else {
-          // "除外候補" またはAIが未知の値を返した場合は、DBを触らず記録のみ
+          // "除外候補" またはAIが未知の値を返した場合は、category/subcategoryは変更せず
+          // ai_reviewed_atだけ記録して以後スキップする
+          await updateProductClassification({ id: product.id, aiReviewedAt: new Date().toISOString() });
           await mkdir("scraper/tmp", { recursive: true });
           const line = JSON.stringify({ id: product.id, name: product.name, category, suggestedCategory: result.suggestedCategory }) + "\n";
           await appendFile(`scraper/tmp/excluded-candidates-${new Date().toISOString().slice(0, 10)}.json`, line, "utf-8");

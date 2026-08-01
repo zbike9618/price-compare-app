@@ -62,8 +62,9 @@ export function createClassifier(apiKey) {
   };
 }
 
-export async function fetchProductsByCategory(supabaseUrl, anonKey, category, limit) {
-  const url = `${supabaseUrl}/rest/v1/products?category=eq.${encodeURIComponent(category)}&select=id,name&limit=${limit}`;
+export async function fetchProductsByCategory(supabaseUrl, anonKey, category, limit, { unreviewedOnly = false } = {}) {
+  const reviewedFilter = unreviewedOnly ? "&ai_reviewed_at=is.null" : "";
+  const url = `${supabaseUrl}/rest/v1/products?category=eq.${encodeURIComponent(category)}${reviewedFilter}&select=id,name&limit=${limit}`;
   const res = await fetch(url, {
     headers: { apikey: anonKey, authorization: `Bearer ${anonKey}` },
   });
