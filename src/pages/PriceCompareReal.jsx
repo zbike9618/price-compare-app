@@ -7,8 +7,10 @@ import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import { hasSeenOnboarding } from "../lib/onboarding.js";
+import { isPasscodeUnlocked } from "../lib/passcode.js";
 import AppShell from "../components/AppShell.jsx";
 import OnboardingTour from "../components/OnboardingTour.jsx";
+import PasscodeGate from "../components/PasscodeGate.jsx";
 import ListView from "./ListView.jsx";
 import ShoppingListCompare from "./ShoppingListCompare.jsx";
 import MapView from "./MapView.jsx";
@@ -35,6 +37,7 @@ export default function PriceCompareReal() {
   const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
+  const [passcodeUnlocked, setPasscodeUnlocked] = useState(() => isPasscodeUnlocked());
 
   useEffect(() => {
     (async () => {
@@ -266,6 +269,10 @@ export default function PriceCompareReal() {
     setActiveCategory(null);
     setView("list");
   };
+
+  if (!passcodeUnlocked) {
+    return <PasscodeGate onUnlock={() => setPasscodeUnlocked(true)} />;
+  }
 
   if (loading) {
     return (
