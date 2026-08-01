@@ -3,15 +3,17 @@ import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { ONBOARDING_STEPS, hasSeenOnboarding, markOnboardingSeen, findVisibleTourTarget } from "./onboarding.js";
 
 describe("ONBOARDING_STEPS", () => {
-  it("4ステップ、list→cart→map→favoritesの順で定義されている", () => {
-    expect(ONBOARDING_STEPS.map((s) => s.id)).toEqual(["list", "cart", "map", "favorites"]);
+  it("導線に沿ってwelcome→map→list→discount→cart→favoritesの順で定義されている", () => {
+    expect(ONBOARDING_STEPS.map((s) => s.id)).toEqual(["welcome", "map", "list", "discount", "cart", "favorites"]);
   });
 
-  it("各ステップがtitle・description・targetIdを持つ", () => {
+  it("各ステップがtitle・descriptionを持つ（targetIdはwelcomeのみnull許容）", () => {
     for (const step of ONBOARDING_STEPS) {
-      expect(step.targetId).toBeTruthy();
       expect(step.title).toBeTruthy();
       expect(step.description).toBeTruthy();
+      if (step.id !== "welcome") {
+        expect(step.targetId).toBeTruthy();
+      }
     }
   });
 });
