@@ -7,7 +7,7 @@ export function isPasscodeUnlocked() {
   try {
     return localStorage.getItem(PASSCODE_STORAGE_KEY) === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 

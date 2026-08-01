@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { PASSCODE, isPasscodeUnlocked, unlockPasscode, checkPasscode } from "./passcode.js";
 
 describe("checkPasscode", () => {
@@ -41,5 +41,16 @@ describe("isPasscodeUnlocked / unlockPasscode", () => {
   it("unlockPasscode後はtrueを返す", () => {
     unlockPasscode();
     expect(isPasscodeUnlocked()).toBe(true);
+  });
+
+  it("localStorageアクセスが例外を投げる環境ではfalseを返す（fail-openしない）", () => {
+    const spy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("localStorage is not available");
+    });
+    try {
+      expect(isPasscodeUnlocked()).toBe(false);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
