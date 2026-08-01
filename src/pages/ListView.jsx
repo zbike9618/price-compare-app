@@ -6,6 +6,7 @@ import {
 import ProductRow from "../components/ProductRow.jsx";
 import { productKey } from "../lib/cartKeys.js";
 import { getSubcategoryLabel, OTHER_SUBCATEGORY, SUBCATEGORIES } from "../lib/subcategories.js";
+import { ACCENT } from "../lib/theme.js";
 
 const CATEGORY_STYLE = {
   野菜: { icon: Carrot, color: "#16a34a" },
@@ -161,30 +162,30 @@ export default function ListView({
       {topDiscountStore && (
         <div
           style={{
-            display: "flex", alignItems: "center", gap: 10, background: "#fef2f2",
-            border: "1px solid #fca5a5", borderRadius: 14, padding: "12px 16px", marginBottom: 14,
+            display: "flex", alignItems: "center", gap: 12, background: "#fef2f2",
+            border: "1px solid #fca5a5", borderRadius: 16, padding: "14px 18px", marginBottom: 16,
           }}
         >
           <div
             style={{
-              width: 36, height: 36, borderRadius: 10, background: "#fee2e2",
+              width: 42, height: 42, borderRadius: 12, background: "#fee2e2",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}
           >
-            <Percent size={17} color="#dc2626" strokeWidth={2.2} />
+            <Percent size={20} color="#dc2626" strokeWidth={2.2} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#991b1b" }}>
-              今、値引き中の商品が一番多いのは<strong>{topDiscountStore.name}</strong>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#991b1b" }}>
+              今いちばんお得なのは<strong>{topDiscountStore.name}</strong>さんです
             </div>
-            <div style={{ fontSize: 11, color: "#b91c1c" }}>
-              取扱商品の{Math.round(topDiscountStore.rate * 100)}%（{topDiscountStore.discounted}/{topDiscountStore.total}品目）が値下げ中
+            <div style={{ fontSize: 14, color: "#b91c1c" }}>
+              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
         {!showHome && (
           <button
             type="button"
@@ -192,31 +193,31 @@ export default function ListView({
             aria-label="戻る"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              width: 38, border: "1px solid #e2e8f0", borderRadius: 10, background: "#fff", color: "#334155",
+              width: 46, border: "1px solid #e2e8f0", borderRadius: 12, background: "#fff", color: "#334155",
             }}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={22} />
           </button>
         )}
         <div
           style={{
-            flex: 1, display: "flex", alignItems: "center", gap: 6, background: "#fff",
-            border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px",
+            flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#fff",
+            border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 16px",
           }}
         >
-          <Search size={16} color="#94a3b8" />
+          <Search size={19} color="#94a3b8" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="商品名で検索"
-            style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
+            style={{ border: "none", flex: 1, fontSize: 16, background: "transparent" }}
           />
         </div>
         {isBrowsingList && (
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "0 10px", fontSize: 13, background: "#fff" }}
+            style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: "0 12px", fontSize: 15, background: "#fff" }}
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.id} value={o.id}>{o.label}</option>
@@ -227,11 +228,11 @@ export default function ListView({
 
       {showHome && (
         <>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#64748b", margin: "0 0 10px" }}>何をお探しですか？</p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: "#64748b", margin: "0 0 12px" }}>何をお探しですか？</p>
           <div
             style={{
-              display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-              gap: 10, marginBottom: 16,
+              display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
+              gap: 12, marginBottom: 18,
             }}
           >
             {sortByStoreLayout(categories).map((c) => {
@@ -262,17 +263,17 @@ export default function ListView({
 
       {showSubcategoryGrid && (
         <>
-          <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#334155", margin: "0 0 10px" }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#334155", margin: "0 0 12px" }}>
             {(() => {
               const Icon = (CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).icon;
-              return <Icon size={16} color={(CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color} />;
+              return <Icon size={18} color={(CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color} />;
             })()}
             {activeCategory}の中から選んでください
           </p>
           <div
             style={{
-              display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-              gap: 10, marginBottom: 16,
+              display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
+              gap: 12, marginBottom: 18,
             }}
           >
             {subcategoryDefs.map((def) => {
@@ -304,18 +305,18 @@ export default function ListView({
       )}
 
       {isBrowsingList && activeCategory && (
-        <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#334155", margin: "0 0 10px" }}>
+        <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#334155", margin: "0 0 12px" }}>
           {(() => {
             const Icon = (CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).icon;
-            return <Icon size={15} color={(CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color} />;
+            return <Icon size={17} color={(CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color} />;
           })()}
           {activeCategory}
           {activeSubcategory && <span style={{ color: "#94a3b8", fontWeight: 400 }}>／{activeSubcategory}</span>}
         </p>
       )}
       {isBrowsingList && discountOnly && (
-        <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#dc2626", margin: "0 0 10px" }}>
-          <TrendingDown size={15} color="#dc2626" /> 値下げ中
+        <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#dc2626", margin: "0 0 12px" }}>
+          <TrendingDown size={17} color="#dc2626" /> 値下げ中
         </p>
       )}
 
@@ -326,14 +327,14 @@ export default function ListView({
         const visibleItems = section.items.slice(0, visibleCount);
         const remaining = section.items.length - visibleItems.length;
         return (
-          <div key={section.category} style={{ marginBottom: 16 }}>
+          <div key={section.category} style={{ marginBottom: 18 }}>
             {!activeCategory && !discountOnly && (
-              <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#64748b", margin: "0 0 6px" }}>
-                <SectionIcon size={13} color={sectionStyle.color} />
+              <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 14, fontWeight: 700, color: "#64748b", margin: "0 0 8px" }}>
+                <SectionIcon size={15} color={sectionStyle.color} />
                 {section.category} <span style={{ fontWeight: 400, color: "#94a3b8" }}>（{section.items.length}）</span>
               </p>
             )}
-            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden" }}>
               {visibleItems.map((product) => {
                 const isInCart = cartKeys.has(productKey(product.id));
                 const isFavorite = favoriteIds.has(product.id);
@@ -358,9 +359,9 @@ export default function ListView({
                   type="button"
                   onClick={() => showMore(section.category)}
                   style={{
-                    display: "block", width: "100%", padding: 10, border: "none",
-                    borderTop: "1px solid #e2e8f0", background: "#f8fafc", color: "#2563eb",
-                    fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    display: "block", width: "100%", padding: 13, border: "none",
+                    borderTop: "1px solid #e2e8f0", background: "#f8fafc", color: ACCENT,
+                    fontSize: 14, fontWeight: 700, cursor: "pointer",
                   }}
                 >
                   もっと見る（あと{remaining}件）
@@ -372,8 +373,8 @@ export default function ListView({
       })}
 
       {isBrowsingList && visibleSections.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-          {rangeHint ?? (discountOnly ? "値下げ中の商品がありません" : "該当する商品がありません")}
+        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, textAlign: "center", color: "#94a3b8", fontSize: 15 }}>
+          {rangeHint ?? (discountOnly ? "値下げ中の商品が見つかりませんでした" : "見つかりませんでした。別のキーワードで探してみてください")}
         </div>
       )}
     </>
@@ -386,23 +387,23 @@ function CategoryCard({ label, Icon, color, count, onClick }) {
       type="button"
       onClick={onClick}
       style={{
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
-        padding: "18px 8px", borderRadius: 16, position: "relative",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 9,
+        padding: "22px 10px", borderRadius: 18, position: "relative",
         border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer",
       }}
     >
       {typeof count === "number" && (
         <span
           style={{
-            position: "absolute", top: 6, right: 6, fontSize: 10, fontWeight: 700, padding: "2px 6px",
+            position: "absolute", top: 7, right: 7, fontSize: 11, fontWeight: 700, padding: "2px 7px",
             borderRadius: 999, background: "#f1f5f9", color: "#94a3b8",
           }}
         >
           {count}
         </span>
       )}
-      <Icon size={30} color={color} strokeWidth={1.7} />
-      <span style={{ fontSize: 13, fontWeight: 700, color: "#334155" }}>{label}</span>
+      <Icon size={34} color={color} strokeWidth={1.7} />
+      <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>{label}</span>
     </button>
   );
 }

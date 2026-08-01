@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "../lib/AuthContext.jsx";
+import { ACCENT } from "../lib/theme.js";
 
 export default function AuthForm({ onClose }) {
   const { signIn, signUp } = useAuth();
@@ -32,29 +33,29 @@ export default function AuthForm({ onClose }) {
       onClick={onClose}
     >
       <div
-        style={{ background: "#fff", borderRadius: 16, padding: 24, width: 320, position: "relative" }}
+        style={{ background: "#fff", borderRadius: 20, padding: 28, width: 340, position: "relative" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          style={{ position: "absolute", top: 12, right: 12, border: "none", background: "transparent", color: "#94a3b8" }}
+          style={{ position: "absolute", top: 14, right: 14, border: "none", background: "transparent", color: "#94a3b8" }}
         >
-          <X size={18} />
+          <X size={21} />
         </button>
 
-        <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>
+        <h2 style={{ margin: "0 0 18px", fontSize: 19, fontWeight: 700, color: "#0f172a" }}>
           {mode === "signin" ? "ログイン" : "新規登録"}
         </h2>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="メールアドレス"
-            style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 14 }}
+            style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", fontSize: 16 }}
           />
           <input
             type="password"
@@ -63,15 +64,15 @@ export default function AuthForm({ onClose }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="パスワード（8文字以上）"
-            style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 14 }}
+            style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", fontSize: 16 }}
           />
-          {error && <p style={{ color: "#dc2626", fontSize: 12, margin: 0 }}>{error}</p>}
+          {error && <p style={{ color: "#dc2626", fontSize: 14, margin: 0 }}>{error}</p>}
           <button
             type="submit"
             disabled={submitting}
             style={{
-              background: "#2563eb", color: "#fff", border: "none", borderRadius: 8,
-              padding: "10px 12px", fontSize: 14, fontWeight: 700, opacity: submitting ? 0.6 : 1,
+              background: ACCENT, color: "#fff", border: "none", borderRadius: 10,
+              padding: "12px 14px", fontSize: 16, fontWeight: 700, opacity: submitting ? 0.6 : 1,
             }}
           >
             {mode === "signin" ? "ログイン" : "登録する"}
@@ -81,7 +82,7 @@ export default function AuthForm({ onClose }) {
         <button
           type="button"
           onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); }}
-          style={{ marginTop: 12, border: "none", background: "transparent", color: "#2563eb", fontSize: 12 }}
+          style={{ marginTop: 14, border: "none", background: "transparent", color: ACCENT, fontSize: 14 }}
         >
           {mode === "signin" ? "アカウントを新規作成する" : "すでにアカウントをお持ちの方はこちら"}
         </button>

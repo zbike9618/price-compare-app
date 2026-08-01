@@ -16,6 +16,7 @@ import ListView from "./ListView.jsx";
 import ShoppingListCompare from "./ShoppingListCompare.jsx";
 import MapView from "./MapView.jsx";
 import FavoritesView from "./FavoritesView.jsx";
+import { ACCENT } from "../lib/theme.js";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -309,16 +310,16 @@ export default function PriceCompareReal() {
         `}</style>
         <div
           style={{
-            width: 32, height: 32, borderRadius: "50%",
-            border: "3px solid #e2e8f0", borderTopColor: "#2563eb",
+            width: 36, height: 36, borderRadius: "50%",
+            border: "3px solid #e2e8f0", borderTopColor: ACCENT,
             animation: "price-compare-spin 0.8s linear infinite",
           }}
         />
-        <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>読み込み中...</p>
+        <p style={{ margin: 0, color: "#64748b", fontSize: 15 }}>読み込み中です…</p>
       </div>
     );
   }
-  if (error) return <p style={{ padding: 24, color: "#dc2626" }}>データの取得に失敗しました: {error}</p>;
+  if (error) return <p style={{ padding: 24, color: "#dc2626", fontSize: 15 }}>データがうまく読み込めませんでした: {error}</p>;
 
   const inRangeStoreCount = storesInRangeIds ? storesInRangeIds.size : stores.length;
   const rangeHint =
@@ -339,13 +340,13 @@ export default function PriceCompareReal() {
       {favoritePriceDrops.length > 0 && (
         <div
           style={{
-            display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7",
-            border: "1px solid #f59e0b", borderRadius: 10, padding: "10px 12px", marginBottom: 12,
+            display: "flex", alignItems: "flex-start", gap: 10, background: "#fef3c7",
+            border: "1px solid #f59e0b", borderRadius: 12, padding: "12px 15px", marginBottom: 14,
           }}
         >
-          <Bell size={16} color="#b45309" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div style={{ flex: 1, fontSize: 12.5, color: "#92400e" }}>
-            お気に入りの{favoritePriceDrops.length}件が値下げ中です：
+          <Bell size={19} color="#b45309" style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ flex: 1, fontSize: 14.5, color: "#92400e" }}>
+            お気に入りの{favoritePriceDrops.length}件が安くなっています：
             {favoritePriceDrops.map((p) => p.name).join("・")}
           </div>
           <button
@@ -354,7 +355,7 @@ export default function PriceCompareReal() {
             aria-label="通知を閉じる"
             style={{ border: "none", background: "transparent", padding: 0, color: "#92400e", flexShrink: 0 }}
           >
-            <X size={14} />
+            <X size={17} />
           </button>
         </div>
       )}
@@ -365,16 +366,16 @@ export default function PriceCompareReal() {
           onClick={() => setView("map")}
           style={{
             display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%",
-            border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", marginBottom: 12,
-            background: "#fff", fontSize: 12, color: "#334155", cursor: "pointer",
+            border: "1px solid #e2e8f0", borderRadius: 12, padding: "11px 15px", marginBottom: 14,
+            background: "#fff", fontSize: 14, color: "#334155", cursor: "pointer",
           }}
         >
           <span>
             {rangeSetting
               ? `半径${rangeSetting.radiusKm.toFixed(1)}km・対象${inRangeStoreCount}店舗`
-              : "範囲未設定：全店舗を対象に表示中"}
+              : "範囲は未設定です：すべてのお店を表示中"}
           </span>
-          <span style={{ color: "#2563eb", fontWeight: 700 }}>範囲を設定</span>
+          <span style={{ color: ACCENT, fontWeight: 700 }}>範囲を設定</span>
         </button>
       )}
 
@@ -424,17 +425,17 @@ export default function PriceCompareReal() {
         <>
           <div
             style={{
-              display: "flex", flexDirection: "column", gap: 2, border: "1px solid #e2e8f0", borderRadius: 10,
-              padding: "8px 12px", marginBottom: 12, background: "#fff", fontSize: 12, color: "#334155",
+              display: "flex", flexDirection: "column", gap: 3, border: "1px solid #e2e8f0", borderRadius: 12,
+              padding: "11px 15px", marginBottom: 14, background: "#fff", fontSize: 14, color: "#334155",
             }}
           >
             <span style={{ fontWeight: 700 }}>
               {rangeSetting
-                ? `現在地周辺 半径${rangeSetting.radiusKm.toFixed(1)}km・${inRangeStoreCount}店舗を表示中`
-                : "周辺の店舗をすべて表示中（範囲未設定）"}
+                ? `現在地の周辺 半径${rangeSetting.radiusKm.toFixed(1)}km・${inRangeStoreCount}店舗を表示中`
+                : "周辺のお店をすべて表示しています（範囲は未設定です）"}
             </span>
             <span style={{ color: "#94a3b8" }}>
-              ピンをタップすると店名が見られます{rangeSetting ? "。薄いピンは比較範囲外の店舗です" : ""}
+              ピンをタップするとお店の名前が見られます{rangeSetting ? "。薄いピンは範囲の外のお店です" : ""}
             </span>
           </div>
           <MapView

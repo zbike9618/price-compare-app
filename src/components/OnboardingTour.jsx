@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { ONBOARDING_STEPS, markOnboardingSeen, findVisibleTourTarget } from "../lib/onboarding.js";
+import { ACCENT } from "../lib/theme.js";
 
 export default function OnboardingTour({ onClose }) {
   const [mode, setMode] = useState("tour");
@@ -44,20 +45,20 @@ export default function OnboardingTour({ onClose }) {
     <button
       type="button"
       onClick={() => setMode(mode === "tour" ? "modal" : "tour")}
-      style={{ border: "none", background: "transparent", color: "#93c5fd", fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+      style={{ border: "none", background: "transparent", color: "#93c5fd", fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
     >
       {mode === "tour" ? "一覧形式で見る" : "画面上で見る"}
     </button>
   );
 
   const dots = (
-    <div style={{ display: "flex", gap: 6 }}>
+    <div style={{ display: "flex", gap: 7 }}>
       {ONBOARDING_STEPS.map((s, i) => (
         <span
           key={s.id}
           style={{
-            width: 6, height: 6, borderRadius: "50%",
-            background: i === step ? "#2563eb" : "#cbd5e1",
+            width: 7, height: 7, borderRadius: "50%",
+            background: i === step ? ACCENT : "#cbd5e1",
           }}
         />
       ))}
@@ -74,42 +75,42 @@ export default function OnboardingTour({ onClose }) {
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 16,
         }}
       >
-        <div style={{ background: "#fff", borderRadius: 16, padding: 24, width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ background: "#fff", borderRadius: 18, padding: 26, width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>
+            <span style={{ fontSize: 14, color: "#94a3b8", fontWeight: 700 }}>
               使い方（{step + 1}/{ONBOARDING_STEPS.length}）
             </span>
             <button type="button" onClick={finish} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>
-              <X size={18} />
+              <X size={20} />
             </button>
           </div>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#0f172a" }}>{current.title}</h3>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: "#475569" }}>{current.description}</p>
+          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#0f172a" }}>{current.title}</h3>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: "#475569" }}>{current.description}</p>
           {dots}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
             <button
               type="button"
               onClick={() => setMode("tour")}
-              style={{ border: "none", background: "transparent", color: "#2563eb", fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+              style={{ border: "none", background: "transparent", color: ACCENT, fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
             >
               画面上で見る
             </button>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 9 }}>
               {step > 0 && (
                 <button
                   type="button"
                   onClick={goBack}
-                  style={{ display: "flex", alignItems: "center", gap: 4, border: "1px solid #e2e8f0", background: "#fff", borderRadius: 8, padding: "8px 12px", fontSize: 13, cursor: "pointer", color: "#334155" }}
+                  style={{ display: "flex", alignItems: "center", gap: 5, border: "1px solid #e2e8f0", background: "#fff", borderRadius: 10, padding: "10px 15px", fontSize: 15, cursor: "pointer", color: "#334155" }}
                 >
-                  <ArrowLeft size={14} /> 戻る
+                  <ArrowLeft size={16} /> 戻る
                 </button>
               )}
               <button
                 type="button"
                 onClick={goNext}
-                style={{ display: "flex", alignItems: "center", gap: 4, border: "none", background: "#2563eb", color: "#fff", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                style={{ display: "flex", alignItems: "center", gap: 5, border: "none", background: ACCENT, color: "#fff", borderRadius: 10, padding: "10px 17px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
               >
-                {isLast ? "はじめる" : "次へ"} {!isLast && <ArrowRight size={14} />}
+                {isLast ? "はじめる" : "次へ"} {!isLast && <ArrowRight size={16} />}
               </button>
             </div>
           </div>
@@ -142,15 +143,15 @@ export default function OnboardingTour({ onClose }) {
     zIndex: 2001,
     background: "#0f172a",
     color: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    width: 260,
+    borderRadius: 14,
+    padding: 18,
+    width: 280,
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 12,
     ...(showAbove
-      ? { left: Math.max(12, Math.min(targetRect.left, window.innerWidth - 272)), bottom: window.innerHeight - targetRect.top + 12 }
-      : { left: Math.min(targetRect.right + 12, window.innerWidth - 272), top: Math.max(12, targetRect.top) }),
+      ? { left: Math.max(12, Math.min(targetRect.left, window.innerWidth - 292)), bottom: window.innerHeight - targetRect.top + 12 }
+      : { left: Math.min(targetRect.right + 12, window.innerWidth - 292), top: Math.max(12, targetRect.top) }),
   };
 
   return (
@@ -158,24 +159,24 @@ export default function OnboardingTour({ onClose }) {
       <div style={holeStyle} />
       <div style={tooltipStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <span style={{ fontSize: 11, color: "#93c5fd", fontWeight: 700 }}>
+          <span style={{ fontSize: 13, color: "#93c5fd", fontWeight: 700 }}>
             使い方（{step + 1}/{ONBOARDING_STEPS.length}）
           </span>
           <button type="button" onClick={finish} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#93c5fd" }}>
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
-        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{current.title}</h4>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: "#cbd5e1" }}>{current.description}</p>
+        <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>{current.title}</h4>
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: "#cbd5e1" }}>{current.description}</p>
         {dots}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
           {modeToggleLink}
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 9 }}>
             {step > 0 && (
               <button
                 type="button"
                 onClick={goBack}
-                style={{ border: "1px solid #475569", background: "transparent", color: "#e2e8f0", borderRadius: 8, padding: "6px 10px", fontSize: 12, cursor: "pointer" }}
+                style={{ border: "1px solid #475569", background: "transparent", color: "#e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 14, cursor: "pointer" }}
               >
                 戻る
               </button>
@@ -183,7 +184,7 @@ export default function OnboardingTour({ onClose }) {
             <button
               type="button"
               onClick={goNext}
-              style={{ border: "none", background: "#2563eb", color: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+              style={{ border: "none", background: ACCENT, color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
             >
               {isLast ? "はじめる" : "次へ"}
             </button>

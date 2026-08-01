@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Search, Bookmark, Trash2, X, Crown, PiggyBank } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { computeMultiStoreSavings, computeSavingsMessage, getMonthlySavings, recordSavings } from "../lib/savings.js";
+import { ACCENT } from "../lib/theme.js";
 
 export default function ShoppingListCompare({
   cartEntries,
@@ -37,34 +38,34 @@ export default function ShoppingListCompare({
   return (
     <>
       {(builtinPresets.length > 0 || customPresets.length > 0) && (
-        <div style={{ marginBottom: 12 }}>
-          <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 6px" }}>プリセットから追加</p>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div style={{ marginBottom: 14 }}>
+          <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 8px" }}>いつものリストから追加</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {builtinPresets.map((preset) => (
               <button
                 key={preset.name}
                 type="button"
                 onClick={() => onApplyPresetKeys(preset.keys)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 999,
-                  border: "1px solid #e2e8f0", background: "#fff", fontSize: 12,
+                  display: "flex", alignItems: "center", gap: 5, padding: "8px 15px", borderRadius: 999,
+                  border: "1px solid #e2e8f0", background: "#fff", fontSize: 14,
                 }}
               >
-                <Bookmark size={12} /> {preset.name}
+                <Bookmark size={14} /> {preset.name}
               </button>
             ))}
             {customPresets.map((preset) => (
               <span
                 key={preset.id}
                 style={{
-                  display: "flex", alignItems: "center", gap: 4, padding: "5px 6px 5px 12px", borderRadius: 999,
-                  border: "1px solid #2563eb", background: "#fff", fontSize: 12,
+                  display: "flex", alignItems: "center", gap: 5, padding: "7px 8px 7px 15px", borderRadius: 999,
+                  border: `1px solid ${ACCENT}`, background: "#fff", fontSize: 14,
                 }}
               >
                 <button
                   type="button"
                   onClick={() => onApplyCustomPreset(preset)}
-                  style={{ border: "none", background: "transparent", padding: 0, color: "#2563eb" }}
+                  style={{ border: "none", background: "transparent", padding: 0, color: ACCENT }}
                 >
                   {preset.name}
                 </button>
@@ -74,7 +75,7 @@ export default function ShoppingListCompare({
                   style={{ border: "none", background: "transparent", padding: 2, color: "#94a3b8" }}
                   aria-label="プリセットを削除"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={14} />
                 </button>
               </span>
             ))}
@@ -82,26 +83,26 @@ export default function ShoppingListCompare({
         </div>
       )}
 
-      <div style={{ position: "relative", marginBottom: 12 }}>
+      <div style={{ position: "relative", marginBottom: 14 }}>
         <div
           style={{
-            display: "flex", alignItems: "center", gap: 6, background: "#fff",
-            border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px",
+            display: "flex", alignItems: "center", gap: 8, background: "#fff",
+            border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 16px",
           }}
         >
-          <Search size={16} color="#94a3b8" />
+          <Search size={19} color="#94a3b8" />
           <input
             value={cartSearch}
             onChange={(e) => setCartSearch(e.target.value)}
             placeholder="商品名で検索してリストに追加（例: 牛乳）"
-            style={{ border: "none", flex: 1, fontSize: 14, background: "transparent" }}
+            style={{ border: "none", flex: 1, fontSize: 16, background: "transparent" }}
           />
         </div>
         {cartSearchResults.length > 0 && (
           <div
             style={{
               position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#fff",
-              border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden", zIndex: 10,
+              border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden", zIndex: 10,
             }}
           >
             {cartSearchResults.map((p) => (
@@ -110,8 +111,8 @@ export default function ShoppingListCompare({
                 type="button"
                 onClick={() => onAddProduct(p.id)}
                 style={{
-                  display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
-                  border: "none", background: "#fff", fontSize: 13, borderTop: "1px solid #f1f5f9",
+                  display: "block", width: "100%", textAlign: "left", padding: "12px 16px",
+                  border: "none", background: "#fff", fontSize: 15, borderTop: "1px solid #f1f5f9",
                 }}
               >
                 {p.name}
@@ -125,35 +126,35 @@ export default function ShoppingListCompare({
       </div>
 
       {cartEntries.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "32px 16px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-          上の検索欄から商品名を追加すると、一番安い店をすぐ診断します
+        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: "36px 18px", textAlign: "center", color: "#94a3b8", fontSize: 15 }}>
+          上の検索欄から商品名を入れてみてください。追加するとすぐ、一番安いお店をお教えします
         </div>
       ) : (
         <>
-          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden", marginBottom: 12 }}>
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden", marginBottom: 14 }}>
             {cartEntries.map((entry, i) => (
               <div
                 key={entry.key}
                 style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "10px 14px", borderTop: i === 0 ? "none" : "1px solid #f1f5f9",
+                  padding: "13px 16px", borderTop: i === 0 ? "none" : "1px solid #f1f5f9",
                 }}
               >
-                <span style={{ fontSize: 13 }}>{entry.label}</span>
+                <span style={{ fontSize: 15 }}>{entry.label}</span>
                 <button type="button" onClick={() => onRemoveEntry(entry.key)} style={{ border: "none", background: "transparent", color: "#94a3b8" }}>
-                  <X size={14} />
+                  <X size={17} />
                 </button>
               </div>
             ))}
           </div>
 
           {showSaveForm ? (
-            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
               <input
                 value={presetNameInput}
                 onChange={(e) => setPresetNameInput(e.target.value)}
-                placeholder="プリセット名（例: いつもの買い物）"
-                style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 13 }}
+                placeholder="リストの名前（例: いつものお買い物）"
+                style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 12, padding: "11px 16px", fontSize: 15 }}
               />
               <button
                 type="button"
@@ -163,7 +164,7 @@ export default function ShoppingListCompare({
                   setPresetNameInput("");
                   setShowSaveForm(false);
                 }}
-                style={{ border: "1px solid #2563eb", borderRadius: 10, padding: "0 14px", background: "#2563eb", color: "#fff", fontSize: 13 }}
+                style={{ border: `1px solid ${ACCENT}`, borderRadius: 12, padding: "0 18px", background: ACCENT, color: "#fff", fontSize: 15 }}
               >
                 保存
               </button>
@@ -173,58 +174,58 @@ export default function ShoppingListCompare({
               type="button"
               onClick={() => setShowSaveForm(true)}
               style={{
-                display: "flex", alignItems: "center", gap: 6, border: "1px solid #e2e8f0", borderRadius: 10,
-                padding: "8px 12px", background: "#fff", fontSize: 13, marginBottom: 12,
+                display: "flex", alignItems: "center", gap: 7, border: "1px solid #e2e8f0", borderRadius: 12,
+                padding: "11px 16px", background: "#fff", fontSize: 15, marginBottom: 14,
               }}
             >
-              <Bookmark size={14} /> このリストをプリセット保存
+              <Bookmark size={16} /> このリストを名前をつけて保存
             </button>
           )}
 
           {savingsMessage && (
             <div
               style={{
-                display: "flex", alignItems: "center", gap: 8, background: "#ecfdf5",
-                border: "1px solid #4ade80", borderRadius: 10, padding: "10px 12px", marginBottom: 12,
+                display: "flex", alignItems: "center", gap: 10, background: "#ecfdf5",
+                border: "1px solid #4ade80", borderRadius: 12, padding: "13px 16px", marginBottom: 14,
               }}
             >
-              <PiggyBank size={18} color="#16a34a" />
-              <span style={{ fontSize: 13, color: "#15803d" }}>
-                <strong>{savingsMessage.cheapestName}</strong>が最安！{savingsMessage.comparedName}より{" "}
-                <strong>{yen(savingsMessage.diff)}</strong>お得
+              <PiggyBank size={21} color="#16a34a" />
+              <span style={{ fontSize: 15, color: "#15803d" }}>
+                <strong>{savingsMessage.cheapestName}</strong>が一番安いです！{savingsMessage.comparedName}より{" "}
+                <strong>{yen(savingsMessage.diff)}</strong>お得ですよ
                 {monthlySavings > 0 && (
-                  <span style={{ color: "#94a3b8" }}>（今月の累計節約額: {yen(monthlySavings)}）</span>
+                  <span style={{ color: "#94a3b8" }}>（今月ここまでの節約額: {yen(monthlySavings)}）</span>
                 )}
               </span>
             </div>
           )}
 
-          <div style={{ background: "#0f172a", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ background: "#0f172a", borderRadius: 18, overflow: "hidden" }}>
             {cartStoreTotals.map((s, i) => {
               const isComplete = s.foundCount === cartEntries.length;
               return (
                 <div
                   key={s.id}
                   style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px",
+                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px",
                     borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {i === 0 && <Crown size={16} color="#f59e0b" />}
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    {i === 0 && <Crown size={19} color="#f59e0b" />}
                     <div>
-                      <div style={{ fontSize: 13 }}>{s.name}</div>
+                      <div style={{ fontSize: 15 }}>{s.name}</div>
                       <div
                         style={{
-                          fontSize: 11, fontWeight: isComplete ? 400 : 700,
+                          fontSize: 12.5, fontWeight: isComplete ? 400 : 700,
                           color: isComplete ? "#4ade80" : "#fb923c",
                         }}
                       >
-                        {isComplete ? "全品揃う店舗" : `${s.foundCount}/${cartEntries.length}品目のみ`}
+                        {isComplete ? "全部そろうお店です" : `${s.foundCount}/${cartEntries.length}品目だけあります`}
                       </div>
                     </div>
                   </div>
-                  <div className="price-num" style={{ fontSize: 18, fontWeight: 700 }}>{yen(s.total)}</div>
+                  <div className="price-num" style={{ fontSize: 20, fontWeight: 700 }}>{yen(s.total)}</div>
                 </div>
               );
             })}
@@ -233,12 +234,11 @@ export default function ShoppingListCompare({
           {multiStoreSavings && (
             <div
               style={{
-                marginTop: 10, fontSize: 11.5, color: "#64748b", background: "#f8fafc",
-                border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px",
+                marginTop: 12, fontSize: 13, color: "#64748b", background: "#f8fafc",
+                border: "1px solid #e2e8f0", borderRadius: 12, padding: "10px 14px",
               }}
             >
-              品目ごとに一番安い店で買い回ると、合計は{yen(multiStoreSavings.multiStoreTotal)}
-              （1店舗で揃えるより{yen(multiStoreSavings.diff)}安い）。移動の手間・交通費は含みません
+              品目ごとに一番安いお店で買い回ると、合計は{yen(multiStoreSavings.multiStoreTotal)}（1つのお店でそろえるより{yen(multiStoreSavings.diff)}安くなります）。移動の手間や交通費は含んでいません
             </div>
           )}
         </>

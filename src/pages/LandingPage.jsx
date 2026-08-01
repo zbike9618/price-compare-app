@@ -3,111 +3,112 @@ import {
   PiggyBank, History, Bell, Search,
 } from "lucide-react";
 import { FEEDBACK_FORM_URL, isFeedbackFormReady } from "../lib/feedbackForm.js";
+import { ACCENT, ACCENT_LIGHT } from "../lib/theme.js";
 
 const HOW_TO_USE_STEPS = [
   {
     icon: MapPin,
-    title: "① 地図で近くの店をチェック",
-    body: "はじめに現在地周辺の比較範囲を選びます。以後は範囲内の店舗だけで比較されます。",
+    title: "① 地図で近くのお店をチェック",
+    body: "まず、おうちの近くでお買い物する範囲を選んでください。あとはその中のお店だけで比べてくれます。",
   },
   {
     icon: Search,
     title: "② 気になる商品をリストに追加",
-    body: "カテゴリから商品を探して、買い物リストに追加していきます。検索でもすぐ見つかります。",
+    body: "カテゴリのボタンから商品を探して、買い物リストにポンポン追加していくだけです。検索でもすぐ見つかりますよ。",
   },
   {
     icon: PiggyBank,
-    title: "③ 一番お得な店がひと目でわかる",
-    body: "リストが揃うと、店舗ごとの合計金額と「いくら得するか」が自動で表示されます。",
+    title: "③ 一番お得なお店がひと目でわかる",
+    body: "リストができたら、お店ごとの合計金額と「いくらお得か」を自動で教えてくれます。",
   },
 ];
 
 const FEATURES = [
   {
     icon: MapPin,
-    title: "地図で、近くの店がひと目でわかる",
-    body: "現在地周辺の店舗が地図でひと目に。ピンをタップすれば店名も、範囲外の店は薄く表示されるので迷いません。",
+    title: "地図で、近くのお店がひと目でわかる",
+    body: "おうちの近くのお店が地図でパッと見えます。ピンをタップすればお店の名前も見られて、範囲の外のお店は薄く表示されるので迷いません。",
   },
   {
     icon: List,
-    title: "カテゴリ別の最安値一覧",
-    body: "野菜・精肉・日用品など、カテゴリを絞り込んで最安値だけをサッと確認できます。",
+    title: "カテゴリ別に最安値がわかる",
+    body: "野菜・お肉・日用品など、カテゴリのボタンを押すだけで、その中の最安値をサッと確認できます。",
   },
   {
     icon: PiggyBank,
-    title: "「いくら得するか」がその場でわかる",
-    body: "買い物リストを比べると「A店が最安！B店より¥312お得」と即表示。今月の累計節約額も一緒に確認できます。",
+    title: "「いくらお得か」がその場でわかる",
+    body: "買い物リストを比べると「A店が一番安い！B店より312円お得」とすぐ表示。今月これまでにお得になった合計金額も見られます。",
   },
   {
     icon: History,
-    title: "30日間の底値もチェックできる",
-    body: "今の価格が直近30日の最安値より高いときは、その底値もあわせて表示。買い時かどうかの判断材料になります。",
+    title: "30日間で一番安かった値段もチェックできる",
+    body: "今の値段が直近30日の一番安い値段より高いときは、その値段もあわせて教えてくれます。買い時かどうかの目安になります。",
   },
   {
     icon: Star,
     title: "お気に入り登録でいつでもチェック",
-    body: "気になる商品を☆登録しておくと、お気に入りタブからすぐ価格を確認できます(ログインすると次回以降も保持されます)。",
+    body: "気になる商品を☆で登録しておくと、お気に入りタブからすぐ値段を見られます（ログインすると次に来たときも残っています）。",
   },
   {
     icon: Bell,
-    title: "お気に入りの値下げをアプリ内で通知",
-    body: "☆登録した商品が値下げされたら、開いたときに知らせます。",
+    title: "お気に入りの値下げをお知らせ",
+    body: "☆登録した商品が安くなったら、アプリを開いたときにお知らせします。",
   },
   {
     icon: TrendingDown,
     title: "値下げ中の商品がひと目でわかる",
-    body: "直近30日で最安値を更新した商品には「値下げ」バッジが付きます。",
+    body: "直近30日で一番安い値段を更新した商品には「値下げ」の目印が付きます。",
   },
   {
     icon: ShoppingCart,
-    title: "買い物リストごと、一番安い店を診断",
-    body: "リストに商品を入れるだけで、まとめ買いに一番向いている店舗を教えてくれます。",
+    title: "買い物リストごと、一番安いお店を診断",
+    body: "リストに商品を入れるだけで、まとめ買いに一番向いているお店を教えてくれます。",
   },
 ];
 
 const ROADMAP = [
-  { done: true, label: "地図ビュー・最安値一覧・カテゴリ絞り込み" },
-  { done: true, label: "お気に入り登録・値下げバッジ・買い物リスト診断" },
-  { done: false, label: "単価(¥/100g等)表示" },
-  { done: true, label: "岡山エリア内の店舗拡大（5店舗）" },
+  { done: true, label: "地図・最安値一覧・カテゴリ絞り込み" },
+  { done: true, label: "お気に入り登録・値下げのお知らせ・買い物リスト診断" },
+  { done: false, label: "単価（¥/100gなど）の表示" },
+  { done: true, label: "岡山エリアのお店を拡大（5店舗）" },
 ];
 
 export default function LandingPage() {
   return (
-    <div style={{ fontFamily: "'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif", background: "#f8fafc", color: "#0f172a", minHeight: "100%" }}>
+    <div style={{ fontFamily: "'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif", background: "#FDFBF7", color: "#0f172a", minHeight: "100%" }}>
       <style>{`
         * { box-sizing: border-box; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.28); }
+        .cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(242,120,75,0.28); }
         .cta { transition: all 0.15s ease; }
-        .feat-card:hover { border-color: #2563eb; transform: translateY(-2px); }
+        .feat-card:hover { border-color: ${ACCENT}; transform: translateY(-2px); }
         .feat-card { transition: all 0.15s ease; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 24px 0" }}>
-        <div style={{ width: 26, height: 26, borderRadius: 8, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Store size={15} color="#fff" strokeWidth={2.4} />
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 24px 0" }}>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Store size={17} color="#fff" strokeWidth={2.4} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700 }}>近くのスーパー、最安値くらべ</span>
+        <span style={{ fontSize: 15, fontWeight: 700 }}>近くのスーパー、最安値くらべ</span>
         <span
           style={{
-            fontSize: 10, fontWeight: 700, color: "#2563eb", background: "#eff6ff",
-            borderRadius: 999, padding: "3px 9px", marginLeft: 2,
+            fontSize: 12, fontWeight: 700, color: ACCENT, background: ACCENT_LIGHT,
+            borderRadius: 999, padding: "4px 10px", marginLeft: 2,
           }}
         >
           価格.comのスーパー版
         </span>
       </div>
 
-      <div style={{ padding: "28px 24px 8px" }}>
-        <h1 style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.3, margin: "0 0 14px", letterSpacing: "-0.01em" }}>
+      <div style={{ padding: "30px 24px 8px" }}>
+        <h1 style={{ fontSize: 32, fontWeight: 900, lineHeight: 1.35, margin: "0 0 16px", letterSpacing: "-0.01em" }}>
           「行ったのに、<br />
-          他の店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を無くす。
+          他のお店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を、なくします。
         </h1>
-        <p style={{ fontSize: 14, lineHeight: 1.8, color: "#475569", margin: "0 0 22px" }}>
-          近くのスーパーの価格を自動で集めて比べる、実データ稼働中の節約ツールです。
+        <p style={{ fontSize: 16, lineHeight: 1.9, color: "#475569", margin: "0 0 24px" }}>
+          近くのスーパーの値段を自動で集めて比べる、今すぐ使える節約アプリです。
           <br />
-          価格だけでなく、還元率や「いつもの曜日」まで踏まえて、自分の基準での一番お得な店をすぐ教えます。
+          値段だけでなく、還元率や「いつものお買い物の曜日」もふまえて、あなたにとって一番お得なお店をすぐお教えします。
         </p>
 
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -115,46 +116,46 @@ export default function LandingPage() {
             href="#how-to-use"
             className="cta"
             style={{
-              display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#2563eb",
-              border: "1.5px solid #2563eb", borderRadius: 999, padding: "12px 22px", fontSize: 13.5, fontWeight: 700,
+              display: "flex", alignItems: "center", gap: 6, background: "#fff", color: ACCENT,
+              border: `2px solid ${ACCENT}`, borderRadius: 999, padding: "14px 24px", fontSize: 15, fontWeight: 700,
               textDecoration: "none",
             }}
           >
             使い方を見る（30秒）
-            <ArrowDown size={15} />
+            <ArrowDown size={17} />
           </a>
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 0, margin: "26px 24px 0", background: "#0f172a", borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 0, margin: "28px 24px 0", background: "#0f172a", borderRadius: 18, overflow: "hidden" }}>
         {[
           { value: "5", unit: "店舗", label: "比較対象" },
           { value: "3,850", unit: "件超", label: "登録商品" },
         ].map((s, i) => (
-          <div key={s.label} style={{ flex: 1, textAlign: "center", padding: "16px 8px", borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
-            <div className="mono" style={{ color: "#f8fafc", fontSize: 19, fontWeight: 700 }}>
-              {s.value}<span style={{ fontSize: 12, opacity: 0.7 }}>{s.unit}</span>
+          <div key={s.label} style={{ flex: 1, textAlign: "center", padding: "18px 8px", borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
+            <div className="mono" style={{ color: "#f8fafc", fontSize: 21, fontWeight: 700 }}>
+              {s.value}<span style={{ fontSize: 13, opacity: 0.7 }}>{s.unit}</span>
             </div>
-            <div style={{ color: "#93c5fd", fontSize: 10, marginTop: 2, fontWeight: 700 }}>{s.label}</div>
+            <div style={{ color: "#FFCBB6", fontSize: 12, marginTop: 3, fontWeight: 700 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div id="how-to-use" style={{ padding: "34px 24px 8px", scrollMarginTop: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 4 }}>使い方</div>
-        <h2 style={{ fontSize: 19, fontWeight: 900, margin: "0 0 18px" }}>3ステップで一番お得な店がわかる</h2>
+      <div id="how-to-use" style={{ padding: "36px 24px 8px", scrollMarginTop: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 6 }}>使い方</div>
+        <h2 style={{ fontSize: 21, fontWeight: 900, margin: "0 0 20px" }}>3つのステップで、一番お得なお店がわかります</h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {HOW_TO_USE_STEPS.map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.title} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon size={16} color="#2563eb" strokeWidth={2.2} />
+              <div key={s.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: "16px 18px" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon size={19} color={ACCENT} strokeWidth={2.2} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>{s.title}</div>
-                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>{s.body}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{s.title}</div>
+                  <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7 }}>{s.body}</div>
                 </div>
               </div>
             );
@@ -162,21 +163,21 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div style={{ padding: "34px 24px 8px" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 4 }}>できること</div>
-        <h2 style={{ fontSize: 19, fontWeight: 900, margin: "0 0 18px" }}>「今、一番安い店」がすぐわかる</h2>
+      <div style={{ padding: "36px 24px 8px" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 6 }}>できること</div>
+        <h2 style={{ fontSize: 21, fontWeight: 900, margin: "0 0 20px" }}>「今、一番安いお店」がすぐわかります</h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {FEATURES.map((f) => {
             const Icon = f.icon;
             return (
-              <div key={f.title} className="feat-card" style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon size={16} color="#2563eb" strokeWidth={2.2} />
+              <div key={f.title} className="feat-card" style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: "16px 18px" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon size={19} color={ACCENT} strokeWidth={2.2} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>{f.title}</div>
-                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>{f.body}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{f.title}</div>
+                  <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7 }}>{f.body}</div>
                 </div>
               </div>
             );
@@ -184,22 +185,22 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div style={{ padding: "30px 24px 8px" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 4 }}>今の状況</div>
-        <h2 style={{ fontSize: 19, fontWeight: 900, margin: "0 0 4px" }}>実データで動いている個人開発アプリです</h2>
-        <p style={{ fontSize: 12.5, color: "#64748b", margin: "0 0 16px", lineHeight: 1.7 }}>
-          個人の節約用に開発中で、実店舗の価格を自動収集しています。手応えがあれば、対応エリアの拡大も検討しています。
+      <div style={{ padding: "32px 24px 8px" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 6 }}>今の状況</div>
+        <h2 style={{ fontSize: 21, fontWeight: 900, margin: "0 0 6px" }}>実際のお店の値段で動いている、個人開発のアプリです</h2>
+        <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 18px", lineHeight: 1.8 }}>
+          個人の節約のために作っていて、実店舗の値段を自動で集めています。使ってみて良さそうなら、対応エリアも広げていく予定です。
         </p>
 
-        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden" }}>
           {ROADMAP.map((r, i) => (
-            <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid #f1f5f9" }}>
-              <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: r.done ? "#2563eb" : "#f1f5f9" }}>
-                {r.done ? <Check size={12} color="#fff" strokeWidth={3} /> : <Clock size={11} color="#94a3b8" />}
+            <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderTop: i === 0 ? "none" : "1px solid #f1f5f9" }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: r.done ? ACCENT : "#f1f5f9" }}>
+                {r.done ? <Check size={13} color="#fff" strokeWidth={3} /> : <Clock size={12} color="#94a3b8" />}
               </div>
-              <span style={{ fontSize: 12.5, color: r.done ? "#0f172a" : "#94a3b8", fontWeight: r.done ? 600 : 400 }}>{r.label}</span>
-              <span style={{ marginLeft: "auto", fontSize: 9.5, fontWeight: 700, color: r.done ? "#2563eb" : "#94a3b8" }}>
-                {r.done ? "稼働中" : "未着手"}
+              <span style={{ fontSize: 14, color: r.done ? "#0f172a" : "#94a3b8", fontWeight: r.done ? 600 : 400 }}>{r.label}</span>
+              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: r.done ? ACCENT : "#94a3b8" }}>
+                {r.done ? "できます" : "準備中"}
               </span>
             </div>
           ))}
@@ -207,20 +208,20 @@ export default function LandingPage() {
       </div>
 
       {isFeedbackFormReady() && (
-        <div style={{ padding: "30px 24px 8px" }}>
+        <div style={{ padding: "32px 24px 8px" }}>
           <div
             style={{
-              background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14,
-              padding: "20px 18px", display: "flex", flexDirection: "column",
-              alignItems: "center", textAlign: "center", gap: 10,
+              background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16,
+              padding: "22px 20px", display: "flex", flexDirection: "column",
+              alignItems: "center", textAlign: "center", gap: 12,
             }}
           >
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <MessageSquare size={16} color="#2563eb" strokeWidth={2.2} />
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MessageSquare size={19} color={ACCENT} strokeWidth={2.2} />
             </div>
-            <h2 style={{ fontSize: 15, fontWeight: 900, margin: 0 }}>ご意見・フィードバックをお寄せください</h2>
-            <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.7 }}>
-              使ってみた感想や、こうだったら良いのに、という点をぜひ教えてください。
+            <h2 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>ご感想・ご意見をお聞かせください</h2>
+            <p style={{ fontSize: 14, color: "#64748b", margin: 0, lineHeight: 1.8 }}>
+              使ってみた感想や「こうだったらいいのに」と思ったことを、ぜひ教えてください。
             </p>
             <a
               href={FEEDBACK_FORM_URL}
@@ -228,34 +229,34 @@ export default function LandingPage() {
               rel="noopener noreferrer"
               className="cta"
               style={{
-                display: "inline-flex", alignItems: "center", gap: 6, background: "#2563eb", color: "#fff",
-                border: "none", borderRadius: 999, padding: "10px 20px", fontSize: 13, fontWeight: 700,
+                display: "inline-flex", alignItems: "center", gap: 6, background: ACCENT, color: "#fff",
+                border: "none", borderRadius: 999, padding: "12px 22px", fontSize: 15, fontWeight: 700,
                 textDecoration: "none", marginTop: 4,
               }}
             >
-              フィードバックを送る
-              <ArrowRight size={14} />
+              感想を送る
+              <ArrowRight size={16} />
             </a>
           </div>
         </div>
       )}
 
-      <div style={{ padding: "30px 24px 36px" }}>
-        <div style={{ background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)", borderRadius: 18, padding: "26px 22px", textAlign: "center", color: "#f8fafc" }}>
-          <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>使い方はもう分かりましたね</h2>
-          <p style={{ fontSize: 12, opacity: 0.65, margin: "0 0 18px", lineHeight: 1.7 }}>
-            さっそく使ってみて、良かったところ・使いにくかったところを教えてください。
+      <div style={{ padding: "32px 24px 40px" }}>
+        <div style={{ background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)", borderRadius: 20, padding: "28px 24px", textAlign: "center", color: "#f8fafc" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 10px" }}>使い方はもうバッチリですね</h2>
+          <p style={{ fontSize: 14, opacity: 0.7, margin: "0 0 20px", lineHeight: 1.8 }}>
+            さっそく使ってみて、良かったところ・使いにくかったところをぜひ教えてください。
           </p>
           <a
             href="/app.html"
             className="cta"
             style={{
-              background: "#2563eb", color: "#fff", border: "none", borderRadius: 999, padding: "12px 24px",
-              fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none",
+              background: ACCENT, color: "#fff", border: "none", borderRadius: 999, padding: "14px 26px",
+              fontSize: 15, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none",
             }}
           >
-            アプリを使う
-            <ArrowRight size={14} />
+            アプリを使ってみる
+            <ArrowRight size={16} />
           </a>
         </div>
       </div>
