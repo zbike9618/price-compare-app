@@ -1,6 +1,7 @@
 import {
-  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, Check, Clock,
+  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, Check, Clock, MessageSquare,
 } from "lucide-react";
+import { FEEDBACK_FORM_URL } from "../lib/feedbackForm.js";
 
 const FEATURES = [
   {
@@ -138,6 +139,38 @@ export default function LandingPage() {
               </span>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "30px 24px 8px" }}>
+        <div
+          style={{
+            background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14,
+            padding: "20px 18px", display: "flex", flexDirection: "column",
+            alignItems: "center", textAlign: "center", gap: 10,
+          }}
+        >
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <MessageSquare size={16} color="#2563eb" strokeWidth={2.2} />
+          </div>
+          <h2 style={{ fontSize: 15, fontWeight: 900, margin: 0 }}>ご意見・フィードバックをお寄せください</h2>
+          <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.7 }}>
+            使ってみた感想や、こうだったら良いのに、という点をぜひ教えてください。
+          </p>
+          <a
+            href={FEEDBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6, background: "#2563eb", color: "#fff",
+              border: "none", borderRadius: 999, padding: "10px 20px", fontSize: 13, fontWeight: 700,
+              textDecoration: "none", marginTop: 4,
+            }}
+          >
+            フィードバックを送る
+            <ArrowRight size={14} />
+          </a>
         </div>
       </div>
 
