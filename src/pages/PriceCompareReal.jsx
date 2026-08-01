@@ -267,7 +267,23 @@ export default function PriceCompareReal() {
     setView("list");
   };
 
-  if (loading) return <p style={{ padding: 24 }}>読み込み中...</p>;
+  if (loading) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "64px 24px" }}>
+        <style>{`
+          @keyframes price-compare-spin { to { transform: rotate(360deg); } }
+        `}</style>
+        <div
+          style={{
+            width: 32, height: 32, borderRadius: "50%",
+            border: "3px solid #e2e8f0", borderTopColor: "#2563eb",
+            animation: "price-compare-spin 0.8s linear infinite",
+          }}
+        />
+        <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>読み込み中...</p>
+      </div>
+    );
+  }
   if (error) return <p style={{ padding: 24, color: "#dc2626" }}>データの取得に失敗しました: {error}</p>;
 
   const inRangeStoreCount = storesInRangeIds ? storesInRangeIds.size : stores.length;
