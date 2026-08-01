@@ -1,5 +1,4 @@
-// 共通の固定パスコード。Zが変更したい場合はこの値を書き換えるだけでよい
-export const PASSCODE = "TOKUCHIKA2026";
+import { supabase } from "./supabaseClient.js";
 
 const PASSCODE_STORAGE_KEY = "priceCompareApp.passcodeUnlocked";
 
@@ -19,7 +18,18 @@ export function unlockPasscode() {
   }
 }
 
-export function checkPasscode(input) {
-  if (typeof input !== "string") return false;
-  return input.trim().toLowerCase() === PASSCODE.toLowerCase();
+export async function fetchCurrentPasscode() {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("passcode")
+    .eq("id", 1)
+    .single();
+
+  if (error) throw error;
+  return data.passcode;
+}
+
+export function checkPasscode(input, currentPasscode) {
+  if (typeof input !== "string" || typeof currentPasscode !== "string") return false;
+  return input.trim().normalize("NFKC").toLowerCase() === currentPasscode.trim().normalize("NFKC").toLowerCase();
 }
