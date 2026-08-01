@@ -200,7 +200,7 @@ export default function ShoppingListCompare({
             </div>
           )}
 
-          <div style={{ background: "#0f172a", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ background: "#2E2521", borderRadius: 18, overflow: "hidden" }}>
             {cartStoreTotals.map((s, i) => {
               const isComplete = s.foundCount === cartEntries.length;
               return (

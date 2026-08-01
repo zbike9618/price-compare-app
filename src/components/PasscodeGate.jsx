@@ -46,7 +46,7 @@ export default function PasscodeGate({ onUnlock }) {
     display: "flex", flexDirection: "column", gap: 16, alignItems: "center",
   };
   const wrapperStyle = {
-    position: "fixed", inset: 0, background: "#0f172a",
+    position: "fixed", inset: 0, background: "#2E2521",
     display: "flex", alignItems: "center", justifyContent: "center",
     padding: 16, zIndex: 3000,
   };

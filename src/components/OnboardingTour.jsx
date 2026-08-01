@@ -141,7 +141,7 @@ export default function OnboardingTour({ onClose }) {
   const tooltipStyle = {
     position: "fixed",
     zIndex: 2001,
-    background: "#0f172a",
+    background: "#2E2521",
     color: "#fff",
     borderRadius: 14,
     padding: 18,

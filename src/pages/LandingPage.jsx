@@ -127,7 +127,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 0, margin: "28px 24px 0", background: "#0f172a", borderRadius: 18, overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 0, margin: "28px 24px 0", background: "#2E2521", borderRadius: 18, overflow: "hidden" }}>
         {[
           { value: "5", unit: "店舗", label: "比較対象" },
           { value: "3,850", unit: "件超", label: "登録商品" },
@@ -242,7 +242,7 @@ export default function LandingPage() {
       )}
 
       <div style={{ padding: "32px 24px 40px" }}>
-        <div style={{ background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)", borderRadius: 20, padding: "28px 24px", textAlign: "center", color: "#f8fafc" }}>
+        <div style={{ background: "linear-gradient(180deg, #2E2521 0%, #4A3A30 100%)", borderRadius: 20, padding: "28px 24px", textAlign: "center", color: "#f8fafc" }}>
           <h2 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 10px" }}>使い方はもうバッチリですね</h2>
           <p style={{ fontSize: 14, opacity: 0.7, margin: "0 0 20px", lineHeight: 1.8 }}>
             さっそく使ってみて、良かったところ・使いにくかったところをぜひ教えてください。
