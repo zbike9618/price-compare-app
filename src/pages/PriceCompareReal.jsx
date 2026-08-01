@@ -7,7 +7,6 @@ import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import { hasSeenOnboarding } from "../lib/onboarding.js";
-import { isPasscodeUnlocked } from "../lib/passcode.js";
 import { dismissDrops, dropSignature, isDropDismissed } from "../lib/notifications.js";
 import { Bell, X } from "lucide-react";
 import AppShell from "../components/AppShell.jsx";
@@ -39,7 +38,7 @@ export default function PriceCompareReal() {
   const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
-  const [passcodeUnlocked, setPasscodeUnlocked] = useState(() => isPasscodeUnlocked());
+  const [passcodeUnlocked, setPasscodeUnlocked] = useState(false);
   const [dismissedVersion, setDismissedVersion] = useState(0);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, beforeEach, vi } from "vitest";
-import { isPasscodeUnlocked, unlockPasscode, checkPasscode, fetchCurrentPasscode } from "./passcode.js";
+import { isUnlockedFor, unlockPasscode, checkPasscode, fetchCurrentPasscode } from "./passcode.js";
 import { supabase } from "./supabaseClient.js";
 
 vi.mock("./supabaseClient.js", () => ({
@@ -77,18 +77,23 @@ describe("fetchCurrentPasscode", () => {
   });
 });
 
-describe("isPasscodeUnlocked / unlockPasscode", () => {
+describe("isUnlockedFor / unlockPasscode", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   it("未設定ならfalseを返す", () => {
-    expect(isPasscodeUnlocked()).toBe(false);
+    expect(isUnlockedFor("TOKUCHIKA2026")).toBe(false);
   });
 
-  it("unlockPasscode後はtrueを返す", () => {
-    unlockPasscode();
-    expect(isPasscodeUnlocked()).toBe(true);
+  it("unlockPasscode後、同じ現在パスコードに対してはtrueを返す", () => {
+    unlockPasscode("TOKUCHIKA2026");
+    expect(isUnlockedFor("TOKUCHIKA2026")).toBe(true);
+  });
+
+  it("管理画面でパスコードが変更された後は、旧パスコードで解除済みでもfalseを返す（再入力を要求）", () => {
+    unlockPasscode("TOKUCHIKA2026");
+    expect(isUnlockedFor("NEWCODE2026")).toBe(false);
   });
 
   it("localStorageアクセスが例外を投げる環境ではfalseを返す（fail-openしない）", () => {
@@ -96,7 +101,7 @@ describe("isPasscodeUnlocked / unlockPasscode", () => {
       throw new Error("localStorage is not available");
     });
     try {
-      expect(isPasscodeUnlocked()).toBe(false);
+      expect(isUnlockedFor("TOKUCHIKA2026")).toBe(false);
     } finally {
       spy.mockRestore();
     }

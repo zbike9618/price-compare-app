@@ -1,18 +1,24 @@
 import { supabase } from "./supabaseClient.js";
 
-const PASSCODE_STORAGE_KEY = "priceCompareApp.passcodeUnlocked";
+const PASSCODE_STORAGE_KEY = "priceCompareApp.unlockedPasscode";
 
-export function isPasscodeUnlocked() {
+/**
+ * 渡された現在のパスコードに対して、この端末が解除済みかどうかを判定する。
+ * 解除時に使った値そのものを保存しているため、管理画面でパスコードが変更されると
+ * 保存済みの値と一致しなくなり、再入力が必要になる。
+ */
+export function isUnlockedFor(currentPasscode) {
   try {
-    return localStorage.getItem(PASSCODE_STORAGE_KEY) === "true";
+    const stored = localStorage.getItem(PASSCODE_STORAGE_KEY);
+    return checkPasscode(stored, currentPasscode);
   } catch {
     return false;
   }
 }
 
-export function unlockPasscode() {
+export function unlockPasscode(passcodeValue) {
   try {
-    localStorage.setItem(PASSCODE_STORAGE_KEY, "true");
+    localStorage.setItem(PASSCODE_STORAGE_KEY, passcodeValue);
   } catch {
     // localStorageが使えない環境では何もしない
   }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Lock, AlertCircle } from "lucide-react";
-import { checkPasscode, unlockPasscode, fetchCurrentPasscode } from "../lib/passcode.js";
+import { checkPasscode, unlockPasscode, fetchCurrentPasscode, isUnlockedFor } from "../lib/passcode.js";
 
 export default function PasscodeGate({ onUnlock }) {
   const [value, setValue] = useState("");
@@ -12,7 +12,14 @@ export default function PasscodeGate({ onUnlock }) {
     let cancelled = false;
     fetchCurrentPasscode()
       .then((passcode) => {
-        if (!cancelled) setCurrentPasscode(passcode);
+        if (cancelled) return;
+        // この端末が以前解除したパスコードと現在のパスコードが一致する場合のみ、
+        // 再入力なしで通す。管理画面でパスコードが変更されていれば再入力を求める
+        if (isUnlockedFor(passcode)) {
+          onUnlock();
+          return;
+        }
+        setCurrentPasscode(passcode);
       })
       .catch(() => {
         if (!cancelled) setLoadError(true);
@@ -20,12 +27,13 @@ export default function PasscodeGate({ onUnlock }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (checkPasscode(value, currentPasscode)) {
-      unlockPasscode();
+      unlockPasscode(value);
       onUnlock();
     } else {
       setShowError(true);
