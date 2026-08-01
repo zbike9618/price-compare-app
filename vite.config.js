@@ -13,6 +13,18 @@ export default defineConfig({
         demoApp: resolve(__dirname, 'demo_app.html'),
         admin: resolve(__dirname, 'admin.html'),
       },
+      output: {
+        entryFileNames: (chunkInfo) =>
+          chunkInfo.name === 'admin' ? 'assets/admin/[name]-[hash].js' : 'assets/[name]-[hash].js',
+        chunkFileNames: (chunkInfo) => {
+          const isAdminOnly = (chunkInfo.moduleIds || []).every(
+            (id) => id.includes('AdminPasscode') || id.includes('supabaseAdminClient') || id.includes('main-admin')
+          );
+          return isAdminOnly ? 'assets/admin/[name]-[hash].js' : 'assets/[name]-[hash].js';
+        },
+        assetFileNames: (assetInfo) =>
+          assetInfo.name && assetInfo.name.includes('admin') ? 'assets/admin/[name]-[hash][extname]' : 'assets/[name]-[hash][extname]',
+      },
     },
   },
 })

@@ -42,6 +42,14 @@ describe("checkPasscode", () => {
   it("currentPasscodeがundefinedならfalseを返す（DB取得前の誤照合を防ぐ）", () => {
     expect(checkPasscode("TOKUCHIKA2026", undefined)).toBe(false);
   });
+
+  it("両方とも空文字ならfalseを返す（空パスコード保存によるゲート無効化を防ぐ）", () => {
+    expect(checkPasscode("", "")).toBe(false);
+  });
+
+  it("両方とも空白のみならfalseを返す", () => {
+    expect(checkPasscode("   ", "   ")).toBe(false);
+  });
 });
 
 describe("fetchCurrentPasscode", () => {

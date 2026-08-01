@@ -31,5 +31,8 @@ export async function fetchCurrentPasscode() {
 
 export function checkPasscode(input, currentPasscode) {
   if (typeof input !== "string" || typeof currentPasscode !== "string") return false;
-  return input.trim().normalize("NFKC").toLowerCase() === currentPasscode.trim().normalize("NFKC").toLowerCase();
+  const a = input.trim().normalize("NFKC").toLowerCase();
+  const b = currentPasscode.trim().normalize("NFKC").toLowerCase();
+  if (!a || !b) return false;
+  return a === b;
 }

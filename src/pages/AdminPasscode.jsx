@@ -28,8 +28,16 @@ export default function AdminPasscode() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    if (!value.trim()) return;
     setMessage(null);
+    if (!supabaseAdmin) {
+      setMessage({
+        type: "error",
+        text: "service role keyが埋め込まれていません（.env.localを確認してください）",
+      });
+      return;
+    }
+    setSaving(true);
     const { error } = await supabaseAdmin
       .from("app_settings")
       .update({ passcode: value, updated_at: new Date().toISOString() })
@@ -81,7 +89,7 @@ export default function AdminPasscode() {
             </label>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !value.trim()}
               style={{
                 border: "none", background: saving ? "#93c5fd" : "#2563eb", color: "#fff",
                 borderRadius: 10, padding: "11px 0", fontSize: 13.5, fontWeight: 700,
