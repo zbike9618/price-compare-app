@@ -1,7 +1,26 @@
 import {
-  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, Check, Clock, MessageSquare, PiggyBank, History, Bell,
+  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, ArrowDown, Check, Clock, MessageSquare,
+  PiggyBank, History, Bell, Search,
 } from "lucide-react";
 import { FEEDBACK_FORM_URL, isFeedbackFormReady } from "../lib/feedbackForm.js";
+
+const HOW_TO_USE_STEPS = [
+  {
+    icon: MapPin,
+    title: "① 地図で近くの店をチェック",
+    body: "はじめに現在地周辺の比較範囲を選びます。以後は範囲内の店舗だけで比較されます。",
+  },
+  {
+    icon: Search,
+    title: "② 気になる商品をリストに追加",
+    body: "カテゴリから商品を探して、買い物リストに追加していきます。検索でもすぐ見つかります。",
+  },
+  {
+    icon: PiggyBank,
+    title: "③ 一番お得な店がひと目でわかる",
+    body: "リストが揃うと、店舗ごとの合計金額と「いくら得するか」が自動で表示されます。",
+  },
+];
 
 const FEATURES = [
   {
@@ -93,16 +112,16 @@ export default function LandingPage() {
 
         <div style={{ display: "flex", justifyContent: "center" }}>
           <a
-            href="/app.html"
+            href="#how-to-use"
             className="cta"
             style={{
-              display: "flex", alignItems: "center", gap: 6, background: "#2563eb", color: "#fff",
-              border: "none", borderRadius: 999, padding: "13px 22px", fontSize: 13.5, fontWeight: 700,
-              boxShadow: "0 4px 12px rgba(37,99,235,0.24)", textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#2563eb",
+              border: "1.5px solid #2563eb", borderRadius: 999, padding: "12px 22px", fontSize: 13.5, fontWeight: 700,
+              textDecoration: "none",
             }}
           >
-            アプリを使ってみる
-            <ArrowRight size={15} />
+            使い方を見る（30秒）
+            <ArrowDown size={15} />
           </a>
         </div>
       </div>
@@ -119,6 +138,28 @@ export default function LandingPage() {
             <div style={{ color: "#93c5fd", fontSize: 10, marginTop: 2, fontWeight: 700 }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      <div id="how-to-use" style={{ padding: "34px 24px 8px", scrollMarginTop: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 4 }}>使い方</div>
+        <h2 style={{ fontSize: 19, fontWeight: 900, margin: "0 0 18px" }}>3ステップで一番お得な店がわかる</h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {HOW_TO_USE_STEPS.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.title} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon size={16} color="#2563eb" strokeWidth={2.2} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>{s.title}</div>
+                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>{s.body}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div style={{ padding: "34px 24px 8px" }}>
@@ -201,9 +242,9 @@ export default function LandingPage() {
 
       <div style={{ padding: "30px 24px 36px" }}>
         <div style={{ background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)", borderRadius: 18, padding: "26px 22px", textAlign: "center", color: "#f8fafc" }}>
-          <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>近くのスーパー、最安値くらべ</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>使い方はもう分かりましたね</h2>
           <p style={{ fontSize: 12, opacity: 0.65, margin: "0 0 18px", lineHeight: 1.7 }}>
-            まずは触ってみて、良かったところ・使いにくかったところを教えてください。
+            さっそく使ってみて、良かったところ・使いにくかったところを教えてください。
           </p>
           <a
             href="/app.html"
