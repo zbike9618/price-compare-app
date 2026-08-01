@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package, TrendingDown,
+  LayoutGrid, Percent,
 } from "lucide-react";
 import ProductRow from "../components/ProductRow.jsx";
 import { productKey } from "../lib/cartKeys.js";
@@ -43,6 +44,7 @@ export default function ListView({
   onToggleFavorite,
   discountedProductIds,
   rangeHint,
+  topDiscountStore,
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [visibleCounts, setVisibleCounts] = useState(() => new Map());
@@ -83,6 +85,32 @@ export default function ListView({
 
   return (
     <>
+      {topDiscountStore && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 10, background: "#fef2f2",
+            border: "1px solid #fca5a5", borderRadius: 14, padding: "12px 16px", marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 36, height: 36, borderRadius: 10, background: "#fee2e2",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}
+          >
+            <Percent size={17} color="#dc2626" strokeWidth={2.2} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#991b1b" }}>
+              今、値引き中の商品が一番多いのは<strong>{topDiscountStore.name}</strong>
+            </div>
+            <div style={{ fontSize: 11, color: "#b91c1c" }}>
+              取扱商品の{Math.round(topDiscountStore.rate * 100)}%（{topDiscountStore.discounted}/{topDiscountStore.total}品目）が値下げ中
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <div
           style={{
@@ -109,70 +137,52 @@ export default function ListView({
         </select>
       </div>
 
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => setActiveCategory(null)}
-          style={{
-            display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 999,
-            border: activeCategory === null ? "1px solid #2563eb" : "1px solid #e2e8f0",
-            background: activeCategory === null ? "#2563eb" : "#fff",
-            color: activeCategory === null ? "#fff" : "#0f172a", fontSize: 12,
+      <p style={{ fontSize: 12, fontWeight: 700, color: "#64748b", margin: "0 0 8px" }}>何をお探しですか？</p>
+      <div
+        style={{
+          display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(76px, 1fr))",
+          gap: 8, marginBottom: 16,
+        }}
+      >
+        <CategoryCard
+          label="すべて"
+          Icon={LayoutGrid}
+          color="#2563eb"
+          active={activeCategory === null && !discountOnly}
+          onClick={() => {
+            setActiveCategory(null);
+            setDiscountOnly(false);
           }}
-        >
-          すべて
-        </button>
+        />
         {categories.map((c) => {
           const style = CATEGORY_STYLE[c] ?? DEFAULT_CATEGORY_STYLE;
-          const Icon = style.icon;
-          const active = activeCategory === c;
           return (
-            <button
+            <CategoryCard
               key={c}
-              type="button"
-              onClick={() => setActiveCategory(c)}
-              style={{
-                display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 999,
-                border: active ? "1px solid #2563eb" : "1px solid #e2e8f0",
-                background: active ? "#2563eb" : "#fff", color: active ? "#fff" : "#0f172a", fontSize: 12,
+              label={c}
+              Icon={style.icon}
+              color={style.color}
+              count={categoryCounts.get(c) ?? 0}
+              active={activeCategory === c && !discountOnly}
+              onClick={() => {
+                setActiveCategory(c);
+                setDiscountOnly(false);
               }}
-            >
-              <Icon size={12} color={active ? "#fff" : style.color} />
-              {c}
-              <span
-                style={{
-                  fontSize: 10, padding: "1px 6px", borderRadius: 999,
-                  background: active ? "rgba(255,255,255,0.25)" : "#f1f5f9",
-                  color: active ? "#fff" : "#64748b",
-                }}
-              >
-                {categoryCounts.get(c) ?? 0}
-              </span>
-            </button>
+            />
           );
         })}
         {discountedCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setDiscountOnly((v) => !v)}
-            style={{
-              display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 999,
-              border: discountOnly ? "1px solid #dc2626" : "1px solid #fecaca",
-              background: discountOnly ? "#dc2626" : "#fff5f5", color: discountOnly ? "#fff" : "#dc2626", fontSize: 12,
+          <CategoryCard
+            label="値下げ中"
+            Icon={TrendingDown}
+            color="#dc2626"
+            count={discountedCount}
+            active={discountOnly}
+            onClick={() => {
+              setDiscountOnly((v) => !v);
+              setActiveCategory(null);
             }}
-          >
-            <TrendingDown size={12} color={discountOnly ? "#fff" : "#dc2626"} />
-            値下げ中のみ
-            <span
-              style={{
-                fontSize: 10, padding: "1px 6px", borderRadius: 999,
-                background: discountOnly ? "rgba(255,255,255,0.25)" : "#fee2e2",
-                color: discountOnly ? "#fff" : "#dc2626",
-              }}
-            >
-              {discountedCount}
-            </span>
-          </button>
+          />
         )}
       </div>
 
@@ -232,5 +242,34 @@ export default function ListView({
         </div>
       )}
     </>
+  );
+}
+
+function CategoryCard({ label, Icon, color, count, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
+        padding: "12px 6px", borderRadius: 14, position: "relative",
+        border: active ? `1.5px solid ${color}` : "1px solid #e2e8f0",
+        background: active ? `${color}14` : "#fff",
+        cursor: "pointer",
+      }}
+    >
+      {typeof count === "number" && (
+        <span
+          style={{
+            position: "absolute", top: 4, right: 4, fontSize: 9, fontWeight: 700, padding: "1px 5px",
+            borderRadius: 999, background: active ? color : "#f1f5f9", color: active ? "#fff" : "#94a3b8",
+          }}
+        >
+          {count}
+        </span>
+      )}
+      <Icon size={22} color={color} strokeWidth={1.8} />
+      <span style={{ fontSize: 11, fontWeight: 700, color: active ? color : "#334155" }}>{label}</span>
+    </button>
   );
 }

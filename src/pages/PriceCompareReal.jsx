@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
-import { isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
+import { computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
@@ -136,6 +136,14 @@ export default function PriceCompareReal() {
     }
     return discounted;
   }, [historyByPair, storesInRangeIds]);
+
+  const topDiscountStore = useMemo(() => {
+    const rates = computeStoreDiscountRates(historyByPair, storesInRangeIds);
+    const top = rates[0];
+    if (!top || top.discounted === 0) return null;
+    const name = stores.find((s) => s.id === top.storeId)?.name ?? "不明な店舗";
+    return { name, rate: top.rate, discounted: top.discounted, total: top.total };
+  }, [historyByPair, storesInRangeIds, stores]);
 
   const favoritePriceDrops = useMemo(() => {
     return productsInRange.filter(
@@ -387,6 +395,7 @@ export default function PriceCompareReal() {
           onToggleFavorite={toggleFavorite}
           discountedProductIds={discountedProductIds}
           rangeHint={rangeHint}
+          topDiscountStore={topDiscountStore}
         />
       )}
 
