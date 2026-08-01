@@ -89,7 +89,8 @@ export default function LandingPage() {
         <div style={{ width: 30, height: 30, borderRadius: 9, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Store size={17} color="#fff" strokeWidth={2.4} />
         </div>
-        <span style={{ fontSize: 15, fontWeight: 700 }}>近くのスーパー、最安値くらべ</span>
+        <span style={{ fontSize: 15, fontWeight: 900 }}>トクちか</span>
+        <span style={{ fontSize: 13, color: "#64748b" }}>近くのスーパー、最安値くらべ</span>
         <span
           style={{
             fontSize: 12, fontWeight: 700, color: ACCENT, background: ACCENT_LIGHT,
