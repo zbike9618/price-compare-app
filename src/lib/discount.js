@@ -14,6 +14,20 @@ export function isRecentPriceDrop(historyDesc) {
 }
 
 /**
+ * 値下げ幅（金額・割合）を算出する。isRecentPriceDropがtrueの場合のみ値を返し、
+ * それ以外（値下げでない）はnullを返す。
+ * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順で並んだ、直近30日分の価格履歴
+ * @returns {{ diff: number, pct: number } | null}
+ */
+export function computeDiscountInfo(historyDesc) {
+  if (!isRecentPriceDrop(historyDesc)) return null;
+  const [latest, previous] = historyDesc;
+  const diff = previous.price - latest.price;
+  const pct = Math.round((diff / previous.price) * 100);
+  return { diff, pct };
+}
+
+/**
  * 直近30日分の価格履歴から底値（最安値）を返す。底値カレンダー機能の最小版。
  * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順で並んだ、直近30日分の価格履歴
  * @returns {number | null}

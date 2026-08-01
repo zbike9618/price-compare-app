@@ -1,6 +1,6 @@
 // src/lib/discount.test.js
 import { describe, expect, it } from "vitest";
-import { computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "./discount.js";
+import { computeDiscountInfo, computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "./discount.js";
 
 describe("isRecentPriceDrop", () => {
   it("直近の価格が過去30日の最安値を更新していればtrue", () => {
@@ -32,6 +32,33 @@ describe("isRecentPriceDrop", () => {
   it("履歴が1件以下ならfalse", () => {
     expect(isRecentPriceDrop([{ price: 150, scrapedAt: "2026-07-30T00:00:00Z" }])).toBe(false);
     expect(isRecentPriceDrop([])).toBe(false);
+  });
+});
+
+describe("computeDiscountInfo", () => {
+  it("値下げしていれば差額・割合を返す", () => {
+    const historyDesc = [
+      { price: 90, scrapedAt: "2026-07-30T00:00:00Z" },
+      { price: 100, scrapedAt: "2026-07-20T00:00:00Z" },
+    ];
+    expect(computeDiscountInfo(historyDesc)).toEqual({ diff: 10, pct: 10 });
+  });
+
+  it("値下げでなければnull", () => {
+    const historyDesc = [
+      { price: 100, scrapedAt: "2026-07-30T00:00:00Z" },
+      { price: 100, scrapedAt: "2026-07-20T00:00:00Z" },
+    ];
+    expect(computeDiscountInfo(historyDesc)).toBeNull();
+  });
+
+  it("直近が過去30日の最安値でなければnull（値下げしたが底値ではない）", () => {
+    const historyDesc = [
+      { price: 160, scrapedAt: "2026-07-30T00:00:00Z" },
+      { price: 180, scrapedAt: "2026-07-25T00:00:00Z" },
+      { price: 140, scrapedAt: "2026-07-15T00:00:00Z" },
+    ];
+    expect(computeDiscountInfo(historyDesc)).toBeNull();
   });
 });
 

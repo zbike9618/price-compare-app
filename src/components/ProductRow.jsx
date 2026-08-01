@@ -1,7 +1,12 @@
+import { lazy, Suspense } from "react";
 import { ChevronDown, ChevronRight, Star, TrendingDown, AlertTriangle } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { formatRelativeTime, isStalePrice } from "../lib/freshness.js";
 import { ACCENT } from "../lib/theme.js";
+import { buildChartSeries } from "../lib/priceHistoryChart.js";
+
+// rechartsは商品を展開してグラフを見るときだけ必要なため、初回読み込みを軽くするために遅延読み込みにする
+const PriceHistoryChart = lazy(() => import("./PriceHistoryChart.jsx"));
 
 export default function ProductRow({
   product,
@@ -13,10 +18,15 @@ export default function ProductRow({
   isFavorite,
   onToggleFavorite,
   isDiscounted,
+  storeHistories,
 }) {
   const Icon = categoryStyle.icon;
   const cheapest = product.prices[0];
   const others = product.prices.slice(1);
+  const chart = storeHistories ? buildChartSeries(storeHistories) : null;
+  // 表示中の最安値の店で値下げしていなくても、他の店で値下げしていれば
+  // バッジには気付けるようにする（「値下げ中」タブとの表示の食い違いを防ぐ）
+  const summaryDiscount = cheapest.discount ?? others.find((o) => o.discount)?.discount ?? null;
 
   return (
     <div style={{ borderTop: "1px solid #f1f5f9" }}>
@@ -67,7 +77,7 @@ export default function ProductRow({
                     fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
                   }}
                 >
-                  <TrendingDown size={12} /> 値下げ
+                  <TrendingDown size={12} /> {summaryDiscount ? `${summaryDiscount.pct}%引き` : "値下げ"}
                 </span>
               )}
             </div>
@@ -78,6 +88,11 @@ export default function ProductRow({
         </button>
 
         <div className="price-num" style={{ textAlign: "right", flexShrink: 0 }}>
+          {cheapest.discount && (
+            <div style={{ fontSize: 12.5, color: "#94a3b8", textDecoration: "line-through" }}>
+              {yen(cheapest.price + cheapest.discount.diff)}
+            </div>
+          )}
           <div style={{ fontSize: 17, fontWeight: 700, color: "#16a34a" }}>{yen(cheapest.price)}</div>
         </div>
 
@@ -94,10 +109,19 @@ export default function ProductRow({
       </div>
 
       {isOpen && others.length > 0 && (
-        <div style={{ background: "#f8fafc", padding: "10px 18px 12px 43px", fontSize: 13, color: "#94a3b8" }}>
+        <div style={{ background: "#f8fafc", padding: "10px 18px 14px 43px", fontSize: 13, color: "#94a3b8" }}>
           {[cheapest, ...others].map((o, i) => (
-            <div key={o.storeId} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: i === 0 ? 0 : 5 }}>
-              <span>{o.storeName} {yen(o.price)}</span>
+            <div key={o.storeId} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: i === 0 ? 0 : 6 }}>
+              <span>{o.storeName}</span>
+              {o.discount ? (
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ textDecoration: "line-through", color: "#cbd5e1" }}>{yen(o.price + o.discount.diff)}</span>
+                  <span style={{ color: "#dc2626", fontWeight: 700 }}>{yen(o.price)}</span>
+                  <span style={{ color: "#dc2626", fontSize: 11, fontWeight: 700 }}>-{o.discount.pct}%</span>
+                </span>
+              ) : (
+                <span>{yen(o.price)}</span>
+              )}
               <span style={{ color: isStalePrice(o.scrapedAt) ? "#d97706" : "#cbd5e1" }}>
                 （{formatRelativeTime(o.scrapedAt)}）
               </span>
@@ -107,6 +131,12 @@ export default function ProductRow({
               )}
             </div>
           ))}
+
+          {chart && (
+            <Suspense fallback={null}>
+              <PriceHistoryChart data={chart.data} storeNames={chart.storeNames} />
+            </Suspense>
+          )}
         </div>
       )}
     </div>

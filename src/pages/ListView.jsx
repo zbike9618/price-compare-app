@@ -78,6 +78,7 @@ export default function ListView({
   favoriteIds,
   onToggleFavorite,
   discountedProductIds,
+  productHistoryById,
   rangeHint,
   topDiscountStore,
 }) {
@@ -369,6 +370,7 @@ export default function ListView({
                     isFavorite={isFavorite}
                     onToggleFavorite={() => onToggleFavorite(product.id)}
                     isDiscounted={isDiscounted}
+                    storeHistories={productHistoryById.get(product.id)}
                   />
                 );
               })}

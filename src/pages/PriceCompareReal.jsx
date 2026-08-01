@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
-import { computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
+import { computeDiscountInfo, computeStoreDiscountRates, isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
@@ -83,6 +83,7 @@ export default function PriceCompareReal() {
             price: latest.price,
             scrapedAt: latest.scrapedAt,
             min30: thirtyDayLowPrice(historyDesc),
+            discount: computeDiscountInfo(historyDesc),
           });
         }
 
@@ -144,6 +145,22 @@ export default function PriceCompareReal() {
     if (!top || top.discounted === 0) return null;
     const name = stores.find((s) => s.id === top.storeId)?.name ?? "不明な店舗";
     return { name, rate: top.rate, discounted: top.discounted, total: top.total };
+  }, [historyByPair, storesInRangeIds, stores]);
+
+  const productHistoryById = useMemo(() => {
+    const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
+    const byProduct = new Map();
+    for (const [key, historyDesc] of historyByPair) {
+      const [storeId, productId] = key.split(":");
+      if (storesInRangeIds && !storesInRangeIds.has(storeId)) continue;
+      if (!byProduct.has(productId)) byProduct.set(productId, []);
+      byProduct.get(productId).push({
+        storeId,
+        storeName: storeNameById.get(storeId) ?? "不明な店舗",
+        history: historyDesc,
+      });
+    }
+    return byProduct;
   }, [historyByPair, storesInRangeIds, stores]);
 
   const favoritePriceDrops = useMemo(() => {
@@ -395,6 +412,7 @@ export default function PriceCompareReal() {
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
           discountedProductIds={discountedProductIds}
+          productHistoryById={productHistoryById}
           rangeHint={rangeHint}
           topDiscountStore={topDiscountStore}
         />
