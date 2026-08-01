@@ -49,6 +49,17 @@ export async function upsertStoreProduct({ storeId, productId, productUrl }) {
   });
 }
 
+export async function updateProductClassification({ id, category, subcategory }) {
+  const body = {};
+  if (category !== undefined) body.category = category;
+  if (subcategory !== undefined) body.subcategory = subcategory;
+  await rest(`products?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { prefer: "return=minimal" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function insertPriceHistory({ storeId, productId, price }) {
   await rest("price_history", {
     method: "POST",
