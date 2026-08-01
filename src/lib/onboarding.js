@@ -2,7 +2,7 @@ export const ONBOARDING_STEPS = [
   {
     id: "welcome",
     targetId: null,
-    title: "とくちかへようこそ",
+    title: "トクちかへようこそ",
     description: "お近くのスーパーの値段を比べて、賢くお買い物できるアプリです。使い方を順番にご案内しますね。",
   },
   {
