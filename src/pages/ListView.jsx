@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package,
+  Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package, TrendingDown,
 } from "lucide-react";
 import ProductRow from "../components/ProductRow.jsx";
 import { productKey } from "../lib/cartKeys.js";
@@ -46,11 +46,23 @@ export default function ListView({
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [visibleCounts, setVisibleCounts] = useState(() => new Map());
+  const [discountOnly, setDiscountOnly] = useState(false);
 
   // 検索・カテゴリ絞り込みが変わったら各セクションの表示件数をリセットする
   useEffect(() => {
     setVisibleCounts(new Map());
-  }, [query, activeCategory]);
+  }, [query, activeCategory, discountOnly]);
+
+  const visibleSections = discountOnly
+    ? sectionedProducts
+        .map((section) => ({ ...section, items: section.items.filter((p) => discountedProductIds.has(p.id)) }))
+        .filter((section) => section.items.length > 0)
+    : sectionedProducts;
+
+  const discountedCount = sectionedProducts.reduce(
+    (sum, section) => sum + section.items.filter((p) => discountedProductIds.has(p.id)).length,
+    0
+  );
 
   const showMore = (category) => {
     setVisibleCounts((prev) => {
@@ -139,9 +151,32 @@ export default function ListView({
             </button>
           );
         })}
+        {discountedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setDiscountOnly((v) => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 999,
+              border: discountOnly ? "1px solid #dc2626" : "1px solid #fecaca",
+              background: discountOnly ? "#dc2626" : "#fff5f5", color: discountOnly ? "#fff" : "#dc2626", fontSize: 12,
+            }}
+          >
+            <TrendingDown size={12} color={discountOnly ? "#fff" : "#dc2626"} />
+            値下げ中のみ
+            <span
+              style={{
+                fontSize: 10, padding: "1px 6px", borderRadius: 999,
+                background: discountOnly ? "rgba(255,255,255,0.25)" : "#fee2e2",
+                color: discountOnly ? "#fff" : "#dc2626",
+              }}
+            >
+              {discountedCount}
+            </span>
+          </button>
+        )}
       </div>
 
-      {sectionedProducts.map((section) => {
+      {visibleSections.map((section) => {
         const sectionStyle = CATEGORY_STYLE[section.category] ?? DEFAULT_CATEGORY_STYLE;
         const SectionIcon = sectionStyle.icon;
         const visibleCount = visibleCounts.get(section.category) ?? INITIAL_VISIBLE_COUNT;
@@ -191,9 +226,9 @@ export default function ListView({
         );
       })}
 
-      {sectionedProducts.length === 0 && (
+      {visibleSections.length === 0 && (
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 24, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
-          {rangeHint ?? "該当する商品がありません"}
+          {rangeHint ?? (discountOnly ? "値下げ中の商品がありません" : "該当する商品がありません")}
         </div>
       )}
     </>

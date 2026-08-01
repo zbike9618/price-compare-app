@@ -101,6 +101,9 @@ export default function ProductRow({
                 （{formatRelativeTime(o.scrapedAt)}）
               </span>
               {isStalePrice(o.scrapedAt) && <AlertTriangle size={11} color="#d97706" />}
+              {o.min30 != null && o.min30 < o.price && (
+                <span style={{ color: "#16a34a" }}>30日底値 {yen(o.min30)}</span>
+              )}
             </div>
           ))}
         </div>

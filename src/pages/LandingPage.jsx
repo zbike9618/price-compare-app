@@ -1,5 +1,5 @@
 import {
-  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, Check, Clock, MessageSquare,
+  MapPin, List, Star, TrendingDown, ShoppingCart, Store, ArrowRight, Check, Clock, MessageSquare, PiggyBank, History, Bell,
 } from "lucide-react";
 import { FEEDBACK_FORM_URL, isFeedbackFormReady } from "../lib/feedbackForm.js";
 
@@ -7,7 +7,7 @@ const FEATURES = [
   {
     icon: MapPin,
     title: "地図で、近くの店がひと目でわかる",
-    body: "店舗のピンをタップするだけで、その店の場所がすぐわかります。",
+    body: "現在地周辺の店舗が地図でひと目に。ピンをタップすれば店名も、範囲外の店は薄く表示されるので迷いません。",
   },
   {
     icon: List,
@@ -15,9 +15,24 @@ const FEATURES = [
     body: "野菜・精肉・日用品など、カテゴリを絞り込んで最安値だけをサッと確認できます。",
   },
   {
+    icon: PiggyBank,
+    title: "「いくら得するか」がその場でわかる",
+    body: "買い物リストを比べると「A店が最安！B店より¥312お得」と即表示。今月の累計節約額も一緒に確認できます。",
+  },
+  {
+    icon: History,
+    title: "30日間の底値もチェックできる",
+    body: "今の価格が直近30日の最安値より高いときは、その底値もあわせて表示。買い時かどうかの判断材料になります。",
+  },
+  {
     icon: Star,
     title: "お気に入り登録でいつでもチェック",
     body: "気になる商品を☆登録しておくと、お気に入りタブからすぐ価格を確認できます(ログインすると次回以降も保持されます)。",
+  },
+  {
+    icon: Bell,
+    title: "お気に入りの値下げをアプリ内で通知",
+    body: "☆登録した商品が値下げされたら、開いたときに知らせます。",
   },
   {
     icon: TrendingDown,
@@ -55,17 +70,25 @@ export default function LandingPage() {
           <Store size={15} color="#fff" strokeWidth={2.4} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700 }}>近くのスーパー、最安値くらべ</span>
+        <span
+          style={{
+            fontSize: 10, fontWeight: 700, color: "#2563eb", background: "#eff6ff",
+            borderRadius: 999, padding: "3px 9px", marginLeft: 2,
+          }}
+        >
+          価格.comのスーパー版
+        </span>
       </div>
 
       <div style={{ padding: "28px 24px 8px" }}>
         <h1 style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.3, margin: "0 0 14px", letterSpacing: "-0.01em" }}>
-          同じ牛乳が、<br />
-          店によって<span style={{ color: "#dc2626" }}>値段が違う</span>。
+          「行ったのに、<br />
+          他の店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を無くす。
         </h1>
         <p style={{ fontSize: 14, lineHeight: 1.8, color: "#475569", margin: "0 0 22px" }}>
           近くのスーパーの価格を自動で集めて比べる、実データ稼働中の節約ツールです。
           <br />
-          どの店が安いか迷う時間を、なくします。
+          価格だけでなく、還元率や「いつもの曜日」まで踏まえて、自分の基準での一番お得な店をすぐ教えます。
         </p>
 
         <div style={{ display: "flex", justifyContent: "center" }}>

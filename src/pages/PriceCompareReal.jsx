@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { useFavorites } from "../lib/useFavorites.js";
-import { isRecentPriceDrop } from "../lib/discount.js";
+import { isRecentPriceDrop, thirtyDayLowPrice } from "../lib/discount.js";
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import { hasSeenOnboarding } from "../lib/onboarding.js";
 import { isPasscodeUnlocked } from "../lib/passcode.js";
+import { dismissDrops, dropSignature, isDropDismissed } from "../lib/notifications.js";
+import { Bell, X } from "lucide-react";
 import AppShell from "../components/AppShell.jsx";
 import OnboardingTour from "../components/OnboardingTour.jsx";
 import PasscodeGate from "../components/PasscodeGate.jsx";
@@ -38,6 +40,7 @@ export default function PriceCompareReal() {
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
   const [passcodeUnlocked, setPasscodeUnlocked] = useState(() => isPasscodeUnlocked());
+  const [dismissedVersion, setDismissedVersion] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -79,6 +82,7 @@ export default function PriceCompareReal() {
             storeName: storeNameById.get(storeId) ?? "不明な店舗",
             price: latest.price,
             scrapedAt: latest.scrapedAt,
+            min30: thirtyDayLowPrice(historyDesc),
           });
         }
 
@@ -133,6 +137,22 @@ export default function PriceCompareReal() {
     }
     return discounted;
   }, [historyByPair, storesInRangeIds]);
+
+  const favoritePriceDrops = useMemo(() => {
+    return productsInRange.filter(
+      (p) =>
+        favoriteIds.has(p.id) &&
+        discountedProductIds.has(p.id) &&
+        !isDropDismissed(p.id, p.prices[0].price)
+    );
+    // dismissedVersionは既読状態(localStorage)の変化を再評価させるためだけの依存
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsInRange, favoriteIds, discountedProductIds, dismissedVersion]);
+
+  const handleDismissPriceDrops = () => {
+    dismissDrops(favoritePriceDrops.map((p) => dropSignature(p.id, p.prices[0].price)));
+    setDismissedVersion((v) => v + 1);
+  };
 
   const productById = useMemo(() => new Map(productsInRange.map((p) => [p.id, p])), [productsInRange]);
 
@@ -309,6 +329,29 @@ export default function PriceCompareReal() {
       onCloseAuth={() => setShowAuthForm(false)}
       onRequestOnboarding={() => setShowOnboarding(true)}
     >
+      {favoritePriceDrops.length > 0 && (
+        <div
+          style={{
+            display: "flex", alignItems: "flex-start", gap: 8, background: "#fef3c7",
+            border: "1px solid #f59e0b", borderRadius: 10, padding: "10px 12px", marginBottom: 12,
+          }}
+        >
+          <Bell size={16} color="#b45309" style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ flex: 1, fontSize: 12.5, color: "#92400e" }}>
+            お気に入りの{favoritePriceDrops.length}件が値下げ中です：
+            {favoritePriceDrops.map((p) => p.name).join("・")}
+          </div>
+          <button
+            type="button"
+            onClick={handleDismissPriceDrops}
+            aria-label="通知を閉じる"
+            style={{ border: "none", background: "transparent", padding: 0, color: "#92400e", flexShrink: 0 }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {view !== "map" && (
         <button
           type="button"
@@ -370,12 +413,29 @@ export default function PriceCompareReal() {
       )}
 
       {view === "map" && (
-        <MapView
-          stores={stores}
-          rangeSetting={rangeSetting}
-          inRangeStoreIds={storesInRangeIds}
-          onConfirmRange={handleConfirmRange}
-        />
+        <>
+          <div
+            style={{
+              display: "flex", flexDirection: "column", gap: 2, border: "1px solid #e2e8f0", borderRadius: 10,
+              padding: "8px 12px", marginBottom: 12, background: "#fff", fontSize: 12, color: "#334155",
+            }}
+          >
+            <span style={{ fontWeight: 700 }}>
+              {rangeSetting
+                ? `現在地周辺 半径${rangeSetting.radiusKm.toFixed(1)}km・${inRangeStoreCount}店舗を表示中`
+                : "周辺の店舗をすべて表示中（範囲未設定）"}
+            </span>
+            <span style={{ color: "#94a3b8" }}>
+              ピンをタップすると店名が見られます{rangeSetting ? "。薄いピンは比較範囲外の店舗です" : ""}
+            </span>
+          </div>
+          <MapView
+            stores={stores}
+            rangeSetting={rangeSetting}
+            inRangeStoreIds={storesInRangeIds}
+            onConfirmRange={handleConfirmRange}
+          />
+        </>
       )}
 
       {view === "favorites" && (

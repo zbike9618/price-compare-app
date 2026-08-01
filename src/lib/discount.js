@@ -12,3 +12,13 @@ export function isRecentPriceDrop(historyDesc) {
   const minPrice = Math.min(...historyDesc.map((h) => h.price));
   return latest.price === minPrice;
 }
+
+/**
+ * 直近30日分の価格履歴から底値（最安値）を返す。底値カレンダー機能の最小版。
+ * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順で並んだ、直近30日分の価格履歴
+ * @returns {number | null}
+ */
+export function thirtyDayLowPrice(historyDesc) {
+  if (!historyDesc || historyDesc.length === 0) return null;
+  return Math.min(...historyDesc.map((h) => h.price));
+}

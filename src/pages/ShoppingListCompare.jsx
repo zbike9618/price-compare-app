@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Search, Bookmark, Trash2, X, Crown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Search, Bookmark, Trash2, X, Crown, PiggyBank } from "lucide-react";
 import { yen } from "../lib/format.js";
+import { computeMultiStoreSavings, computeSavingsMessage, getMonthlySavings, recordSavings } from "../lib/savings.js";
 
 export default function ShoppingListCompare({
   cartEntries,
@@ -19,6 +20,19 @@ export default function ShoppingListCompare({
 }) {
   const [presetNameInput, setPresetNameInput] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
+  const [monthlySavings, setMonthlySavings] = useState(() => getMonthlySavings());
+  const lastRecordedRef = useRef(null);
+
+  const savingsMessage = computeSavingsMessage(cartStoreTotals, cartEntries.length);
+  const multiStoreSavings = computeMultiStoreSavings(cartEntries, cartStoreTotals, cartEntries.length);
+
+  useEffect(() => {
+    if (!savingsMessage) return;
+    const signature = `${savingsMessage.cheapestName}:${savingsMessage.comparedName}:${savingsMessage.diff}`;
+    if (lastRecordedRef.current === signature) return;
+    lastRecordedRef.current = signature;
+    setMonthlySavings(recordSavings(savingsMessage.diff));
+  }, [savingsMessage]);
 
   return (
     <>
@@ -167,6 +181,24 @@ export default function ShoppingListCompare({
             </button>
           )}
 
+          {savingsMessage && (
+            <div
+              style={{
+                display: "flex", alignItems: "center", gap: 8, background: "#ecfdf5",
+                border: "1px solid #4ade80", borderRadius: 10, padding: "10px 12px", marginBottom: 12,
+              }}
+            >
+              <PiggyBank size={18} color="#16a34a" />
+              <span style={{ fontSize: 13, color: "#15803d" }}>
+                <strong>{savingsMessage.cheapestName}</strong>が最安！{savingsMessage.comparedName}より{" "}
+                <strong>{yen(savingsMessage.diff)}</strong>お得
+                {monthlySavings > 0 && (
+                  <span style={{ color: "#94a3b8" }}>（今月の累計節約額: {yen(monthlySavings)}）</span>
+                )}
+              </span>
+            </div>
+          )}
+
           <div style={{ background: "#0f172a", borderRadius: 16, overflow: "hidden" }}>
             {cartStoreTotals.map((s, i) => {
               const isComplete = s.foundCount === cartEntries.length;
@@ -197,6 +229,18 @@ export default function ShoppingListCompare({
               );
             })}
           </div>
+
+          {multiStoreSavings && (
+            <div
+              style={{
+                marginTop: 10, fontSize: 11.5, color: "#64748b", background: "#f8fafc",
+                border: "1px solid #e2e8f0", borderRadius: 10, padding: "8px 12px",
+              }}
+            >
+              品目ごとに一番安い店で買い回ると、合計は{yen(multiStoreSavings.multiStoreTotal)}
+              （1店舗で揃えるより{yen(multiStoreSavings.diff)}安い）。移動の手間・交通費は含みません
+            </div>
+          )}
         </>
       )}
     </>
