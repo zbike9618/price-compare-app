@@ -88,13 +88,17 @@ export default function OnboardingTour({ onClose }) {
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: "#475569" }}>{current.description}</p>
           {dots}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={() => setMode("tour")}
-              style={{ border: "none", background: "transparent", color: ACCENT, fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
-            >
-              画面上で見る
-            </button>
+            {current.targetId ? (
+              <button
+                type="button"
+                onClick={() => setMode("tour")}
+                style={{ border: "none", background: "transparent", color: ACCENT, fontSize: 14, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+              >
+                画面上で見る
+              </button>
+            ) : (
+              <span />
+            )}
             <div style={{ display: "flex", gap: 9 }}>
               {step > 0 && (
                 <button
