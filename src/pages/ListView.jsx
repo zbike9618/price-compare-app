@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   Search, Carrot, Apple, Milk, Beef, Fish, Croissant, Soup, Droplet, Egg, Package, TrendingDown,
-  Percent, ChevronLeft, HelpCircle,
+  Percent, ChevronLeft, HelpCircle, Candy, Pill, Snowflake, Baby, CupSoda, UtensilsCrossed,
+  HeartPulse, PenLine, Plug, Wheat, IceCreamCone, Sprout, ToyBrick, Sparkles,
 } from "lucide-react";
 import ProductRow from "../components/ProductRow.jsx";
 import { productKey } from "../lib/cartKeys.js";
@@ -19,6 +20,23 @@ const CATEGORY_STYLE = {
   調味料: { icon: Droplet, color: "#78716c" },
   日配食品: { icon: Egg, color: "#ca8a04" },
   日用品: { icon: Package, color: "#64748b" },
+  // ここから下はGeminiが分類の過程で新設したカテゴリ（アイコン未設定だとPackageアイコンに
+  // フォールバックしてしまうため、見つかったものには順次アイコンを割り当てる）
+  菓子: { icon: Candy, color: "#db2777" },
+  医薬品: { icon: Pill, color: "#dc2626" },
+  冷凍食品: { icon: Snowflake, color: "#0ea5e9" },
+  ベビーフード: { icon: Baby, color: "#f472b6" },
+  飲料: { icon: CupSoda, color: "#0891b2" },
+  加工食品: { icon: UtensilsCrossed, color: "#a16207" },
+  健康食品: { icon: HeartPulse, color: "#16a34a" },
+  文房具: { icon: PenLine, color: "#6366f1" },
+  家電: { icon: Plug, color: "#64748b" },
+  "乾物・シリアル": { icon: Wheat, color: "#ca8a04" },
+  惣菜: { icon: UtensilsCrossed, color: "#ea580c" },
+  デザート: { icon: IceCreamCone, color: "#ec4899" },
+  園芸用品: { icon: Sprout, color: "#16a34a" },
+  玩具: { icon: ToyBrick, color: "#f59e0b" },
+  化粧品: { icon: Sparkles, color: "#d946ef" },
 };
 const DEFAULT_CATEGORY_STYLE = { icon: Package, color: "#64748b" };
 
