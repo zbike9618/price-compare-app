@@ -138,13 +138,26 @@ export default function LandingPage() {
         >
           価格.comのスーパー版
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.5, margin: "0 0 16px", letterSpacing: "-0.01em", wordBreak: "keep-all", overflowWrap: "break-word" }}>
+        <h1 style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.5, margin: "0 0 20px", letterSpacing: "-0.01em", wordBreak: "keep-all", overflowWrap: "break-word" }}>
           「行ったのに、他のお店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を、なくします。
         </h1>
-        <p style={{ fontSize: 16, lineHeight: 1.9, color: "#475569", margin: "0 0 24px" }}>
-          近くのスーパーの値段を自動で集めて比べる、今すぐ使える節約アプリです。
-          値段だけでなく、還元率や「いつものお買い物の曜日」もふまえて、あなたにとって一番お得なお店をすぐお教えします。
-        </p>
+
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 14, background: "#fff",
+            border: "1px solid #e2e8f0", borderRadius: 16, padding: "16px 18px", marginBottom: 24,
+          }}
+        >
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <TrendingDown size={20} color="#dc2626" strokeWidth={2.2} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 2 }}>同じ「フジ 本仕込み食パン」でも</div>
+            <div style={{ fontSize: 17, fontWeight: 900, lineHeight: 1.5 }}>
+              お店によって最大<span className="mono" style={{ color: "#dc2626" }}>64円（43%）</span>も違います
+            </div>
+          </div>
+        </div>
 
         <div style={{ display: "flex", justifyContent: "center" }}>
           <a
