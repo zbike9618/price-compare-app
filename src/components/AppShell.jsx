@@ -58,7 +58,7 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
           className="app-bottomnav"
           style={{
             position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff",
-            borderTop: "1px solid #e2e8f0", padding: "8px 4px",
+            borderTop: "1px solid #e2e8f0", padding: "8px 4px", zIndex: 2500,
           }}
         >
           {NAV_ITEMS.map((item) => {

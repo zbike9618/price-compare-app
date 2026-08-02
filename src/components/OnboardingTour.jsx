@@ -20,6 +20,15 @@ export default function OnboardingTour({ onClose }) {
       const rect = findVisibleTourTarget(current.targetId);
       setTargetRect(rect);
     };
+
+    // 対象がホーム画面の下の方（スクロールしないと見えない位置）にある場合、
+    // 下部ナビ/サイドバー内の固定要素ではなく、スクロール対象になりうる要素を画面中央までスクロールする
+    if (current.targetId) {
+      const candidates = document.querySelectorAll(`[data-tour-id="${current.targetId}"]`);
+      const scrollTarget = [...candidates].find((el) => !el.closest("nav"));
+      scrollTarget?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
     measure();
     window.addEventListener("resize", measure);
     // captureフェーズで登録することで、ネストしたスクロールコンテナのスクロールも拾う
@@ -135,7 +144,9 @@ export default function OnboardingTour({ onClose }) {
     height: targetRect.height + pad * 2,
     borderRadius: 12,
     boxShadow: "0 0 0 9999px rgba(15,23,42,0.65)",
-    zIndex: 2000,
+    // 下部ナビ(zIndex:2500, AppShell.jsx)より下のレイヤーにすることで、
+    // ハイライトの暗転がナビバーの上に覆いかぶさらないようにする
+    zIndex: 100,
     pointerEvents: "none",
   };
 
@@ -144,7 +155,7 @@ export default function OnboardingTour({ onClose }) {
   const showAbove = targetRect.top > window.innerHeight / 2;
   const tooltipStyle = {
     position: "fixed",
-    zIndex: 2001,
+    zIndex: 3000,
     background: "#2E2521",
     color: "#fff",
     borderRadius: 14,
