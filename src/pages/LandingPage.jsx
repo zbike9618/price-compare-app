@@ -69,8 +69,9 @@ const FEATURES = [
 const ROADMAP = [
   { done: true, label: "地図・最安値一覧・カテゴリ絞り込み" },
   { done: true, label: "お気に入り登録・値下げのお知らせ・買い物リスト診断" },
-  { done: false, label: "単価（¥/100gなど）の表示" },
   { done: true, label: "岡山エリアのお店を拡大（5店舗）" },
+  { done: true, label: "毎日自動で価格情報を更新" },
+  { done: false, label: "単価（¥/100gなど）の表示" },
 ];
 
 const PRICING_PLANS = [
@@ -177,7 +178,7 @@ export default function LandingPage() {
       <div style={{ display: "flex", justifyContent: "center", gap: 0, margin: "28px 24px 0", background: "#2E2521", borderRadius: 18, overflow: "hidden" }}>
         {[
           { value: "5", unit: "店舗", label: "比較対象" },
-          { value: "3,850", unit: "件超", label: "登録商品" },
+          { value: "4,045", unit: "件超", label: "登録商品" },
         ].map((s, i) => (
           <div key={s.label} style={{ flex: 1, textAlign: "center", padding: "18px 8px", borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none" }}>
             <div className="mono" style={{ color: "#f8fafc", fontSize: 21, fontWeight: 700 }}>
