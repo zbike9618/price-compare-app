@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Search, Bookmark, Trash2, X, Crown, PiggyBank } from "lucide-react";
+import { Search, Bookmark, Trash2, X, Crown, PiggyBank, ChevronDown, ChevronUp } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { computeMultiStoreSavings, computeSavingsMessage, getMonthlySavings, recordSavings } from "../lib/savings.js";
 import { ACCENT } from "../lib/theme.js";
@@ -21,6 +21,7 @@ export default function ShoppingListCompare({
 }) {
   const [presetNameInput, setPresetNameInput] = useState("");
   const [showSaveForm, setShowSaveForm] = useState(false);
+  const [expandedStoreId, setExpandedStoreId] = useState(null);
   const [monthlySavings, setMonthlySavings] = useState(() => getMonthlySavings());
   const lastRecordedRef = useRef(null);
 
@@ -134,29 +135,58 @@ export default function ShoppingListCompare({
           <div style={{ background: "#2E2521", borderRadius: 18, overflow: "hidden", marginBottom: 14 }}>
             {cartStoreTotals.map((s, i) => {
               const isComplete = s.foundCount === cartEntries.length;
+              const isExpanded = expandedStoreId === s.id;
+              const carriedEntries = cartEntries
+                .map((entry) => ({ entry, price: entry.priceAtStore(s.id) }))
+                .filter((e) => e.price != null);
               return (
-                <div
-                  key={s.id}
-                  style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px",
-                    borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                    {i === 0 && <Crown size={19} color="#f59e0b" />}
-                    <div>
-                      <div style={{ fontSize: 15 }}>{s.name}</div>
-                      <div
-                        style={{
-                          fontSize: 12.5, fontWeight: isComplete ? 400 : 700,
-                          color: isComplete ? "#4ade80" : "#fb923c",
-                        }}
-                      >
-                        {isComplete ? "全部そろうお店です" : `${s.foundCount}/${cartEntries.length}品目だけあります`}
+                <div key={s.id} style={{ borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedStoreId(isExpanded ? null : s.id)}
+                    style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px",
+                      color: "#fff", background: "transparent", border: "none", width: "100%", textAlign: "left",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      {i === 0 && <Crown size={19} color="#f59e0b" />}
+                      <div>
+                        <div style={{ fontSize: 15 }}>{s.name}</div>
+                        <div
+                          style={{
+                            fontSize: 12.5, fontWeight: isComplete ? 400 : 700,
+                            color: isComplete ? "#4ade80" : "#fb923c",
+                          }}
+                        >
+                          {isComplete ? "全部そろうお店です" : `${s.foundCount}/${cartEntries.length}品目だけあります`}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="price-num" style={{ fontSize: 20, fontWeight: 700 }}>{yen(s.total)}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div className="price-num" style={{ fontSize: 20, fontWeight: 700 }}>{yen(s.total)}</div>
+                      {isExpanded ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                    </div>
+                  </button>
+                  {isExpanded && (
+                    <div style={{ padding: "0 18px 16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                      {carriedEntries.length === 0 ? (
+                        <div style={{ fontSize: 13, color: "#94a3b8", padding: "10px 0" }}>
+                          この店舗で扱っている品目はありません
+                        </div>
+                      ) : (
+                        carriedEntries.map(({ entry, price }) => (
+                          <div
+                            key={entry.key}
+                            style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 13.5, color: "#e5e7eb" }}
+                          >
+                            <span>{entry.label}</span>
+                            <span className="price-num">{yen(price)}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
