@@ -47,8 +47,8 @@ const INITIAL_VISIBLE_COUNT = 20;
 const SHOW_MORE_STEP = 30;
 
 const SORT_OPTIONS = [
-  { id: "priceAsc", label: "最安値が安い順" },
-  { id: "priceDesc", label: "最安値が高い順" },
+  { id: "priceAsc", label: "安い順" },
+  { id: "priceDesc", label: "高い順" },
   { id: "name", label: "名前順" },
 ];
 
@@ -220,23 +220,26 @@ export default function ListView({
         )}
         <div
           style={{
-            flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#fff",
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, background: "#fff",
             border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 16px",
           }}
         >
-          <Search size={19} color="#94a3b8" />
+          <Search size={19} color="#94a3b8" style={{ flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="商品名で検索"
-            style={{ border: "none", flex: 1, fontSize: 16, background: "transparent" }}
+            style={{ border: "none", flex: 1, minWidth: 0, fontSize: 16, background: "transparent" }}
           />
         </div>
         {isBrowsingList && (
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: "0 12px", fontSize: 15, background: "#fff" }}
+            style={{
+              flexShrink: 0, border: "1px solid #e2e8f0", borderRadius: 12, padding: "0 8px",
+              fontSize: 14, background: "#fff",
+            }}
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.id} value={o.id}>{o.label}</option>
