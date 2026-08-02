@@ -8,6 +8,7 @@ import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
 import { hasSeenOnboarding } from "../lib/onboarding.js";
 import { dismissDrops, dropSignature, isDropDismissed } from "../lib/notifications.js";
+import { getMonthlySavings } from "../lib/savings.js";
 import { Bell, X } from "lucide-react";
 import AppShell from "../components/AppShell.jsx";
 import OnboardingTour from "../components/OnboardingTour.jsx";
@@ -16,6 +17,7 @@ import ListView from "./ListView.jsx";
 import ShoppingListCompare from "./ShoppingListCompare.jsx";
 import MapView from "./MapView.jsx";
 import FavoritesView from "./FavoritesView.jsx";
+import HomeView from "./HomeView.jsx";
 import { ACCENT } from "../lib/theme.js";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -30,7 +32,7 @@ export default function PriceCompareReal() {
   const [products, setProducts] = useState([]);
   const [historyByPair, setHistoryByPair] = useState(() => new Map());
   const [rangeSetting, setRangeSetting] = useState(() => loadRangeSetting());
-  const [view, setView] = useState(() => (loadRangeSetting() ? "list" : "map"));
+  const [view, setView] = useState("home");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("priceAsc");
   const [activeCategory, setActiveCategory] = useState(null);
@@ -378,7 +380,7 @@ export default function PriceCompareReal() {
         </div>
       )}
 
-      {view !== "map" && (
+      {view !== "map" && view !== "home" && (
         <button
           type="button"
           onClick={() => setView("map")}
@@ -395,6 +397,10 @@ export default function PriceCompareReal() {
           </span>
           <span style={{ color: ACCENT, fontWeight: 700 }}>範囲を設定</span>
         </button>
+      )}
+
+      {view === "home" && (
+        <HomeView onNavigate={setView} monthlySavings={getMonthlySavings()} />
       )}
 
       {view === "list" && (
