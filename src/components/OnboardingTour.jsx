@@ -150,9 +150,24 @@ export default function OnboardingTour({ onClose }) {
     pointerEvents: "none",
   };
 
-  // 吹き出しは対象要素の右側（サイドバー時）または上側（下部ナビ時）に出す。
-  // 画面幅が狭い(下部ナビ表示時)は対象が画面下部にあるとみなし、吹き出しを対象の上に出す
-  const showAbove = targetRect.top > window.innerHeight / 2;
+  // 吹き出しの位置: PC(サイドバー幅・768px以上)では対象の右側 or 上側に出す。
+  // スマホ(下部ナビ幅)は横に280px幅の吹き出しを置くと対象のカードに重なってしまうため、
+  // 常に対象の直下（入らなければ直上）に縦積みで出し、重なりを避ける
+  const isNarrowScreen = window.innerWidth < 768;
+  const clampedLeft = Math.max(12, Math.min(targetRect.left, window.innerWidth - 292));
+  let tooltipPosition;
+  if (isNarrowScreen) {
+    const estimatedTooltipHeight = 240;
+    const showBelow = window.innerHeight - targetRect.bottom > estimatedTooltipHeight;
+    tooltipPosition = showBelow
+      ? { left: clampedLeft, top: targetRect.bottom + 12 }
+      : { left: clampedLeft, bottom: window.innerHeight - targetRect.top + 12 };
+  } else {
+    const showAbove = targetRect.top > window.innerHeight / 2;
+    tooltipPosition = showAbove
+      ? { left: clampedLeft, bottom: window.innerHeight - targetRect.top + 12 }
+      : { left: Math.min(targetRect.right + 12, window.innerWidth - 292), top: Math.max(12, targetRect.top) };
+  }
   const tooltipStyle = {
     position: "fixed",
     zIndex: 3000,
@@ -164,9 +179,7 @@ export default function OnboardingTour({ onClose }) {
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    ...(showAbove
-      ? { left: Math.max(12, Math.min(targetRect.left, window.innerWidth - 292)), bottom: window.innerHeight - targetRect.top + 12 }
-      : { left: Math.min(targetRect.right + 12, window.innerWidth - 292), top: Math.max(12, targetRect.top) }),
+    ...tooltipPosition,
   };
 
   return (
