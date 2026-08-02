@@ -118,10 +118,9 @@ export default function LandingPage() {
         <span style={{ fontSize: 15, fontWeight: 900, whiteSpace: "nowrap" }}>トクちか</span>
         <a
           href="/app.html"
-          className="cta"
           style={{
-            marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4, background: ACCENT, color: "#fff",
-            border: "none", borderRadius: 999, padding: "8px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none",
+            marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4, background: "transparent", color: ACCENT,
+            border: `1px solid ${ACCENT}55`, borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, textDecoration: "none",
             flexShrink: 0,
           }}
         >

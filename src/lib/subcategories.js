@@ -1,87 +1,67 @@
 // src/lib/subcategories.js
-// 中カテゴリー（例: 野菜 → キャベツ・にんじん・大根...）を商品名から推定する。
-// スクレイパー側の検索キーワード分類(scraper/lib/categories.js)と対応する語をそのまま流用し、
-// DBスキーマは変更せず商品名の部分一致だけで判定する簡易版。
-// 参考: Zからのヒアリング（スーパーの陳列導線に合わせたい、カテゴリが多すぎてわかりにくい）
+// 中カテゴリー表示用のアイコンマップ。
+// 中カテゴリの値そのものはDBの products.subcategory 列（AI/Claudeによる商品分類の結果）を使う。
+// ここでは表示上のアイコンだけを、頻出する中カテゴリ（各カテゴリで概ね8件以上）に限定して割り当て、
+// マップに無い中カテゴリは呼び出し側で大カテゴリのデフォルトアイコンにフォールバックする
+// （全組み合わせが数百種類あり自由記述に近いため、全件への個別アイコン付与はしない）。
 import {
   Leaf, Carrot, Sprout, Circle, CircleDot, Cherry, LeafyGreen, Salad,
-  Apple, Banana, Citrus, Grape,
+  Apple, Banana, Citrus,
   Ham, Drumstick, Beef, UtensilsCrossed,
   Fish, FishSymbol, FishingRod, FishingHook,
-  Egg, Square, Package,
-  Milk, Droplets, Triangle,
+  Egg, Square, Package, Layers,
+  Milk, Droplet, Droplets, Triangle, CupSoda,
   Sandwich, Croissant,
   Soup,
-  Droplet, Candy,
+  Candy, FlaskConical, FlaskRound, Sparkle, Sparkles,
+  PillBottle, Box, SprayCan, Bath,
+  Wine, GlassWater,
+  Baby, IceCreamCone, Cookie, Popcorn,
 } from "lucide-react";
 
 export const OTHER_SUBCATEGORY = "その他";
 
-export const SUBCATEGORIES = {
-  野菜: [
-    { label: "キャベツ", keywords: ["キャベツ", "きゃべつ"], icon: Leaf },
-    { label: "にんじん", keywords: ["にんじん", "ニンジン", "人参"], icon: Carrot },
-    { label: "大根", keywords: ["大根"], icon: Sprout },
-    { label: "玉ねぎ", keywords: ["玉ねぎ", "たまねぎ", "タマネギ", "玉葱"], icon: Circle },
-    { label: "じゃがいも", keywords: ["じゃがいも", "ジャガイモ"], icon: CircleDot },
-    { label: "トマト", keywords: ["トマト", "とまと"], icon: Cherry },
-    { label: "きゅうり", keywords: ["きゅうり", "キュウリ"], icon: LeafyGreen },
-    { label: "ほうれん草", keywords: ["ほうれん草"], icon: Salad },
-  ],
-  果物: [
-    { label: "りんご", keywords: ["りんご", "リンゴ"], icon: Apple },
-    { label: "バナナ", keywords: ["バナナ"], icon: Banana },
-    { label: "みかん", keywords: ["みかん", "ミカン"], icon: Citrus },
-    { label: "いちご", keywords: ["いちご", "イチゴ"], icon: Grape },
-  ],
-  精肉: [
-    { label: "豚肉", keywords: ["豚肉"], icon: Ham },
-    { label: "鶏肉", keywords: ["鶏肉", "とり肉"], icon: Drumstick },
-    { label: "牛肉", keywords: ["牛肉"], icon: Beef },
-    { label: "ひき肉", keywords: ["ひき肉", "挽肉", "ミンチ"], icon: UtensilsCrossed },
-  ],
-  魚介: [
-    { label: "鮭", keywords: ["鮭", "サーモン"], icon: Fish },
-    { label: "さば", keywords: ["さば", "サバ"], icon: FishSymbol },
-    { label: "まぐろ", keywords: ["まぐろ", "マグロ"], icon: FishingRod },
-    { label: "えび", keywords: ["えび", "エビ"], icon: FishingHook },
-  ],
-  日配食品: [
-    { label: "卵", keywords: ["卵", "たまご"], icon: Egg },
-    { label: "豆腐", keywords: ["豆腐"], icon: Square },
-    { label: "納豆", keywords: ["納豆"], icon: Package },
-  ],
-  乳製品: [
-    { label: "牛乳", keywords: ["牛乳"], icon: Milk },
-    { label: "ヨーグルト", keywords: ["ヨーグルト"], icon: Droplets },
-    { label: "チーズ", keywords: ["チーズ"], icon: Triangle },
-    { label: "バター", keywords: ["バター"], icon: Square },
-  ],
-  パン類: [
-    { label: "食パン", keywords: ["食パン"], icon: Sandwich },
-    { label: "ロールパン", keywords: ["ロールパン"], icon: Croissant },
-  ],
-  麺類: [
-    { label: "うどん", keywords: ["うどん"], icon: Soup },
-    { label: "パスタ", keywords: ["パスタ", "スパゲティ", "スパゲッティ"], icon: UtensilsCrossed },
-  ],
-  調味料: [
-    { label: "醤油", keywords: ["醤油", "しょうゆ"], icon: Droplet },
-    { label: "味噌", keywords: ["味噌", "みそ"], icon: Circle },
-    { label: "砂糖", keywords: ["砂糖"], icon: Candy },
-    { label: "食用油", keywords: ["食用油", "サラダ油"], icon: Droplets },
-  ],
-  日用品: [
-    { label: "ティッシュ", keywords: ["ティッシュ"], icon: Package },
-  ],
+export const SUBCATEGORY_ICONS = {
+  野菜: {
+    キャベツ: Leaf, にんじん: Carrot, 大根: Sprout, 玉ねぎ: Circle,
+    じゃがいも: CircleDot, トマト: Cherry, きゅうり: LeafyGreen, ほうれん草: Salad,
+  },
+  果物: { りんご: Apple, バナナ: Banana, みかん: Citrus },
+  精肉: {
+    豚肉: Ham, 鶏肉: Drumstick, 牛肉: Beef, ひき肉: UtensilsCrossed,
+    ホルモン: Circle, サラダチキン: Salad,
+  },
+  魚介: { 鮭: Fish, さば: FishSymbol, まぐろ: FishingRod, えび: FishingHook },
+  日配食品: {
+    卵: Egg, 豆腐: Square, 惣菜: UtensilsCrossed, パスタ: Soup, 納豆: Package,
+    漬物: Layers, チーズ: Triangle, バター: Square, 練り物: CircleDot,
+    菓子パン: Croissant, "調味料・素": Droplet, "たれ・ソース": Droplets,
+    高野豆腐: Square, 牛乳: Milk, 麺類: Soup, ヨーグルト: Droplets,
+  },
+  乳製品: { チーズ: Triangle, ヨーグルト: Droplets, 牛乳: Milk, バター: Square, 乳飲料: CupSoda },
+  パン類: { 食パン: Sandwich, ロールパン: Croissant, 菓子パン: Croissant, 惣菜パン: Sandwich },
+  麺類: { うどん: Soup, パスタ: UtensilsCrossed, ラーメン: Soup },
+  調味料: {
+    醤油: Droplet, 味噌: Circle, 砂糖: Candy, 食用油: Droplets,
+    パスタソース: FlaskConical, カレー: Soup, 料理の素: FlaskRound, 酢: GlassWater,
+    "ジャム・ペースト": Layers, たれ: CupSoda, 合わせ調味料: FlaskConical,
+    香辛料: Sparkle, ふりかけ: Sparkles, 塩: CircleDot, ケチャップ: Cherry,
+    シーズニング: Sparkle, "マヨネーズ・ドレッシング": Egg,
+    うどんつゆ: Soup, "めんつゆ・たれ": Soup,
+  },
+  日用品: { ティッシュ: Package, ウェットティッシュ: SprayCan, スキンケア: Sparkles, 入浴剤: Bath },
+  デザート: { アイス: IceCreamCone, デザート: Cookie },
+  ベビーフード: { 離乳食: Baby },
+  菓子: { スナック菓子: Popcorn, スナック: Popcorn },
+  健康食品: { サプリメント: PillBottle },
+  加工食品: { 缶詰: Box },
+  惣菜: { 魚: Fish },
+  飲料: { ワイン: Wine, ジュース: GlassWater },
 };
 
 /**
- * 商品名から中カテゴリーのラベルを推定する。どの中カテゴリーにも一致しなければnull（呼び出し側で「その他」扱い）。
+ * 中カテゴリ表示用のアイコンを返す。個別マップに無ければfallbackIconを返す。
  */
-export function getSubcategoryLabel(category, productName) {
-  const defs = SUBCATEGORIES[category];
-  if (!defs) return null;
-  const found = defs.find((d) => d.keywords.some((kw) => productName.includes(kw)));
-  return found ? found.label : null;
+export function getSubcategoryIcon(category, label, fallbackIcon) {
+  return SUBCATEGORY_ICONS[category]?.[label] ?? fallbackIcon;
 }

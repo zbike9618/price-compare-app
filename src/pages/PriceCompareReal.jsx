@@ -80,7 +80,7 @@ export default function PriceCompareReal() {
         const [{ data: storesData, error: storesError }, { data: productsData, error: productsError }, { data: priceHistoryData, error: priceHistoryError }] =
           await Promise.all([
             supabase.from("stores").select("id,name,lat,lng").eq("is_active", true),
-            supabase.from("products").select("id,name,jan_code,category"),
+            supabase.from("products").select("id,name,jan_code,category,subcategory"),
             supabase
               .from("price_history")
               .select("store_id,product_id,price,scraped_at")
@@ -124,6 +124,7 @@ export default function PriceCompareReal() {
             name: p.name,
             janCode: p.jan_code,
             category: p.category,
+            subcategory: p.subcategory,
             prices: (priceByProduct.get(p.id) ?? []).sort((a, b) => a.price - b.price),
           }))
           .filter((p) => p.prices.length > 0);

@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import ProductRow from "../components/ProductRow.jsx";
 import { productKey } from "../lib/cartKeys.js";
-import { getSubcategoryLabel, OTHER_SUBCATEGORY, SUBCATEGORIES } from "../lib/subcategories.js";
+import { getSubcategoryIcon, OTHER_SUBCATEGORY } from "../lib/subcategories.js";
 import { ACCENT } from "../lib/theme.js";
 
 const CATEGORY_STYLE = {
@@ -104,7 +104,6 @@ export default function ListView({
     0
   );
 
-  const subcategoryDefs = activeCategory ? (SUBCATEGORIES[activeCategory] ?? []) : [];
   const categorySection = sectionedProducts.find((s) => s.category === activeCategory);
   const categoryProducts = categorySection?.items ?? [];
 
@@ -112,22 +111,22 @@ export default function ListView({
     const counts = new Map();
     let otherCount = 0;
     for (const p of categoryProducts) {
-      const label = getSubcategoryLabel(activeCategory, p.name);
-      if (label) counts.set(label, (counts.get(label) ?? 0) + 1);
+      const label = p.subcategory;
+      if (label && label !== OTHER_SUBCATEGORY) counts.set(label, (counts.get(label) ?? 0) + 1);
       else otherCount += 1;
     }
     return { counts, otherCount };
   })();
 
   const showSubcategoryGrid =
-    activeCategory !== null && activeSubcategory === null && !discountOnly && !storeFilter && query.trim() === "" && subcategoryDefs.length > 0;
+    activeCategory !== null && activeSubcategory === null && !discountOnly && !storeFilter && query.trim() === "" && subcategoryStats.counts.size > 0;
 
   const isBrowsingList =
     discountOnly ||
     !!storeFilter ||
     query.trim() !== "" ||
     activeSubcategory !== null ||
-    (activeCategory !== null && subcategoryDefs.length === 0);
+    (activeCategory !== null && subcategoryStats.counts.size === 0);
 
   const visibleSections = (() => {
     let sections = sectionedProducts;
@@ -162,8 +161,10 @@ export default function ListView({
         .map((s) => ({
           ...s,
           items: s.items.filter((p) => {
-            const label = getSubcategoryLabel(s.category, p.name);
-            return activeSubcategory === OTHER_SUBCATEGORY ? label === null : label === activeSubcategory;
+            const label = p.subcategory;
+            return activeSubcategory === OTHER_SUBCATEGORY
+              ? !label || label === OTHER_SUBCATEGORY
+              : label === activeSubcategory;
           }),
         }))
         .filter((s) => s.items.length > 0);
@@ -306,21 +307,22 @@ export default function ListView({
               gap: 12, marginBottom: 18,
             }}
           >
-            {subcategoryDefs.map((def) => {
-              const count = subcategoryStats.counts.get(def.label) ?? 0;
-              if (count === 0) return null;
-              const color = (CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color;
-              return (
-                <CategoryCard
-                  key={def.label}
-                  label={def.label}
-                  Icon={def.icon ?? DEFAULT_CATEGORY_STYLE.icon}
-                  color={color}
-                  count={count}
-                  onClick={() => setActiveSubcategory(def.label)}
-                />
-              );
-            })}
+            {[...subcategoryStats.counts.entries()]
+              .sort((a, b) => b[1] - a[1])
+              .map(([label, count]) => {
+                const categoryStyle = CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE;
+                const Icon = getSubcategoryIcon(activeCategory, label, categoryStyle.icon);
+                return (
+                  <CategoryCard
+                    key={label}
+                    label={label}
+                    Icon={Icon}
+                    color={categoryStyle.color}
+                    count={count}
+                    onClick={() => setActiveSubcategory(label)}
+                  />
+                );
+              })}
             {subcategoryStats.otherCount > 0 && (
               <CategoryCard
                 label={OTHER_SUBCATEGORY}
