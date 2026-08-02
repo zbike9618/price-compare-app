@@ -162,11 +162,16 @@ export default function HomeView({
           <span
             key={discountIndex}
             style={{
-              fontSize: 13, color: "#1e40af", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis",
-              whiteSpace: "nowrap", animation: "discountFadeIn 0.4s ease",
+              display: "flex", alignItems: "baseline", gap: 6, minWidth: 0,
+              animation: "discountFadeIn 0.4s ease",
             }}
           >
-            {currentDiscountProduct.name} 最大{currentDiscountProduct.pct}%引き
+            <span style={{ fontSize: 13, color: "#1e40af", fontWeight: 700, flexShrink: 0 }}>
+              最大{currentDiscountProduct.pct}%引き
+            </span>
+            <span style={{ fontSize: 13, color: "#1e40af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {currentDiscountProduct.name}
+            </span>
           </span>
         </div>
       )}
