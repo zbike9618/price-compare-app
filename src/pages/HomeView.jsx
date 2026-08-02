@@ -1,13 +1,16 @@
 // src/pages/HomeView.jsx
+import { useEffect, useState } from "react";
 import { List, ShoppingCart, MapPin, Star, TrendingDown, Percent, LogIn, LogOut, HelpCircle, Navigation } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { ACCENT } from "../lib/theme.js";
+
+const DISCOUNT_ROTATE_MS = 4000;
 
 export default function HomeView({
   onNavigate,
   monthlySavings,
   topDiscountStore,
-  topDiscountProduct,
+  discountProducts = [],
   onViewStore,
   onViewDiscountRanking,
   onViewAllProducts,
@@ -36,6 +39,22 @@ export default function HomeView({
     },
     { id: "help", label: "使い方", icon: HelpCircle, onClick: onRequestOnboarding, tourId: null },
   ];
+
+  const [discountIndex, setDiscountIndex] = useState(0);
+
+  useEffect(() => {
+    setDiscountIndex(0);
+  }, [discountProducts]);
+
+  useEffect(() => {
+    if (discountProducts.length < 2) return;
+    const timer = setInterval(() => {
+      setDiscountIndex((i) => (i + 1) % discountProducts.length);
+    }, DISCOUNT_ROTATE_MS);
+    return () => clearInterval(timer);
+  }, [discountProducts]);
+
+  const currentDiscountProduct = discountProducts[discountIndex] ?? null;
 
   return (
     <div>
@@ -86,20 +105,6 @@ export default function HomeView({
         </div>
       )}
 
-      {topDiscountProduct && (
-        <div
-          style={{
-            display: "flex", alignItems: "center", gap: 8, background: "#fef2f2",
-            border: "1px solid #fca5a5", borderRadius: 999, padding: "8px 14px", marginBottom: 10,
-          }}
-        >
-          <TrendingDown size={15} color="#dc2626" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: "#991b1b", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {topDiscountProduct.name} 最大{topDiscountProduct.pct}%引き
-          </span>
-        </div>
-      )}
-
       {monthlySavings > 0 && (
         <div
           style={{
@@ -137,6 +142,20 @@ export default function HomeView({
             </div>
           </div>
         </button>
+      )}
+
+      {currentDiscountProduct && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 8, background: "#eff6ff",
+            border: "1px solid #93c5fd", borderRadius: 999, padding: "8px 14px", marginBottom: 14,
+          }}
+        >
+          <TrendingDown size={15} color="#2563eb" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: "#1e40af", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {currentDiscountProduct.name} 最大{currentDiscountProduct.pct}%引き
+          </span>
+        </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

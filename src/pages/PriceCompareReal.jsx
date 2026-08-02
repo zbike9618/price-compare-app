@@ -171,17 +171,17 @@ export default function PriceCompareReal() {
     return discounted;
   }, [historyByPair, storesInRangeIds]);
 
-  // ホーム画面の一番上に「品目名＋最大割引率」だけを簡潔に知らせるための、値引き率が最も高い商品
-  const topDiscountProduct = useMemo(() => {
-    let best = null;
+  // ホーム画面で「品目名＋最大割引率」を一定時間ごとに切り替えて知らせるための、値引き中の商品一覧（割引率が高い順）
+  const topDiscountProducts = useMemo(() => {
+    const byProduct = new Map();
     for (const p of productsInRange) {
+      let best = null;
       for (const pr of p.prices) {
-        if (pr.discount && (!best || pr.discount.pct > best.pct)) {
-          best = { name: p.name, pct: pr.discount.pct };
-        }
+        if (pr.discount && (!best || pr.discount.pct > best.pct)) best = pr.discount.pct;
       }
+      if (best != null) byProduct.set(p.id, { name: p.name, pct: best });
     }
-    return best;
+    return [...byProduct.values()].sort((a, b) => b.pct - a.pct).slice(0, 15);
   }, [productsInRange]);
 
   const topDiscountStore = useMemo(() => {
@@ -451,7 +451,7 @@ export default function PriceCompareReal() {
           onNavigate={setView}
           monthlySavings={getMonthlySavings()}
           topDiscountStore={topDiscountStore}
-          topDiscountProduct={topDiscountProduct}
+          discountProducts={topDiscountProducts}
           onViewStore={(storeId, storeName) => {
             setStoreFilter({ storeId, storeName });
             setDiscountOnly(true);
