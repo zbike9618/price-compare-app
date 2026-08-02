@@ -27,7 +27,7 @@ export default defineConfig({
           chunkInfo.name === 'admin' ? 'assets/admin/[name]-[hash].js' : 'assets/[name]-[hash].js',
         chunkFileNames: (chunkInfo) => {
           const isAdminOnly = (chunkInfo.moduleIds || []).every(
-            (id) => id.includes('AdminPasscode') || id.includes('supabaseAdminClient') || id.includes('main-admin')
+            (id) => id.includes('AdminPasscode') || id.includes('main-admin')
           );
           return isAdminOnly ? 'assets/admin/[name]-[hash].js' : 'assets/[name]-[hash].js';
         },
