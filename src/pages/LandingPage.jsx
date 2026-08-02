@@ -73,6 +73,27 @@ const ROADMAP = [
   { done: true, label: "岡山エリアのお店を拡大（5店舗）" },
 ];
 
+const PRICING_PLANS = [
+  {
+    name: "無料プラン",
+    price: "¥0",
+    period: "今はずっと無料",
+    features: ["全店舗の最安値比較", "買い物リストのお店診断", "お気に入り・値下げのお知らせ", "30日間の価格推移グラフ"],
+    highlighted: true,
+    ctaLabel: "今すぐ使う",
+    ctaHref: "/app.html",
+  },
+  {
+    name: "有料プラン",
+    price: "準備中",
+    period: "対応エリア拡大のご要望が増えてきたら",
+    features: ["対応エリア・お店の追加リクエスト", "広告非表示", "優先サポート"],
+    highlighted: false,
+    ctaLabel: "準備中",
+    ctaHref: null,
+  },
+];
+
 export default function LandingPage() {
   return (
     <div style={{ fontFamily: "'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif", background: "#FDFBF7", color: "#0f172a", minHeight: "100%" }}>
@@ -85,30 +106,43 @@ export default function LandingPage() {
         .feat-card { transition: all 0.15s ease; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 24px 0" }}>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Store size={17} color="#fff" strokeWidth={2.4} />
+      <header
+        style={{
+          position: "sticky", top: 0, zIndex: 10, background: "#FDFBF7", borderBottom: "1px solid #e2e8f0",
+          display: "flex", alignItems: "center", gap: 8, padding: "14px 20px",
+        }}
+      >
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Store size={15} color="#fff" strokeWidth={2.4} />
         </div>
-        <span style={{ fontSize: 15, fontWeight: 900 }}>トクちか</span>
-        <span style={{ fontSize: 13, color: "#64748b" }}>近くのスーパー、最安値くらべ</span>
-        <span
+        <span style={{ fontSize: 15, fontWeight: 900, whiteSpace: "nowrap" }}>トクちか</span>
+        <a
+          href="/app.html"
+          className="cta"
           style={{
-            fontSize: 12, fontWeight: 700, color: ACCENT, background: ACCENT_LIGHT,
-            borderRadius: 999, padding: "4px 10px", marginLeft: 2,
+            marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 4, background: ACCENT, color: "#fff",
+            border: "none", borderRadius: 999, padding: "8px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none",
+            flexShrink: 0,
+          }}
+        >
+          使ってみる
+        </a>
+      </header>
+
+      <div style={{ padding: "30px 24px 8px" }}>
+        <div
+          style={{
+            display: "inline-block", fontSize: 12, fontWeight: 700, color: ACCENT, background: ACCENT_LIGHT,
+            borderRadius: 999, padding: "4px 12px", marginBottom: 14,
           }}
         >
           価格.comのスーパー版
-        </span>
-      </div>
-
-      <div style={{ padding: "30px 24px 8px" }}>
-        <h1 style={{ fontSize: 32, fontWeight: 900, lineHeight: 1.35, margin: "0 0 16px", letterSpacing: "-0.01em" }}>
-          「行ったのに、<br />
-          他のお店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を、なくします。
+        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.5, margin: "0 0 16px", letterSpacing: "-0.01em", wordBreak: "keep-all", overflowWrap: "break-word" }}>
+          「行ったのに、他のお店の方が<span style={{ color: "#dc2626" }}>安かった</span>」を、なくします。
         </h1>
         <p style={{ fontSize: 16, lineHeight: 1.9, color: "#475569", margin: "0 0 24px" }}>
           近くのスーパーの値段を自動で集めて比べる、今すぐ使える節約アプリです。
-          <br />
           値段だけでなく、還元率や「いつものお買い物の曜日」もふまえて、あなたにとって一番お得なお店をすぐお教えします。
         </p>
 
@@ -203,6 +237,62 @@ export default function LandingPage() {
               <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: r.done ? ACCENT : "#94a3b8" }}>
                 {r.done ? "できます" : "準備中"}
               </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "32px 24px 8px" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "0.06em", marginBottom: 6 }}>料金プラン</div>
+        <h2 style={{ fontSize: 21, fontWeight: 900, margin: "0 0 20px" }}>今はどちらも実質、無料で使えます</h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {PRICING_PLANS.map((plan) => (
+            <div
+              key={plan.name}
+              style={{
+                background: plan.highlighted ? "#2E2521" : "#fff",
+                color: plan.highlighted ? "#f8fafc" : "#0f172a",
+                border: `1px solid ${plan.highlighted ? "#2E2521" : "#e2e8f0"}`,
+                borderRadius: 16, padding: "20px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 17, fontWeight: 900 }}>{plan.name}</span>
+                <span className="mono" style={{ fontSize: 20, fontWeight: 700 }}>{plan.price}</span>
+              </div>
+              <div style={{ fontSize: 13, color: plan.highlighted ? "#FFCBB6" : "#64748b", marginBottom: 14 }}>{plan.period}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+                {plan.features.map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14, lineHeight: 1.6 }}>
+                    <Check size={15} color={plan.highlighted ? "#FFCBB6" : ACCENT} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 3 }} />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+              {plan.ctaHref ? (
+                <a
+                  href={plan.ctaHref}
+                  className="cta"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6, background: ACCENT, color: "#fff",
+                    border: "none", borderRadius: 999, padding: "10px 20px", fontSize: 14, fontWeight: 700,
+                    textDecoration: "none",
+                  }}
+                >
+                  {plan.ctaLabel}
+                  <ArrowRight size={15} />
+                </a>
+              ) : (
+                <span
+                  style={{
+                    display: "inline-flex", alignItems: "center", background: "rgba(255,255,255,0.1)", color: "#FFCBB6",
+                    borderRadius: 999, padding: "10px 20px", fontSize: 14, fontWeight: 700,
+                  }}
+                >
+                  {plan.ctaLabel}
+                </span>
+              )}
             </div>
           ))}
         </div>
