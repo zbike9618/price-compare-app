@@ -7,6 +7,7 @@ export default function HomeView({
   onNavigate,
   monthlySavings,
   topDiscountStore,
+  topDiscountProduct,
   onViewStore,
   onViewDiscountRanking,
   onViewAllProducts,
@@ -41,34 +42,34 @@ export default function HomeView({
       {showGeoPrompt && (
         <div
           style={{
-            display: "flex", alignItems: "flex-start", gap: 12, background: "#fff",
-            border: "1px solid #e2e8f0", borderRadius: 16, padding: "16px 18px", marginBottom: 14,
+            position: "fixed", inset: 0, zIndex: 4000, background: "rgba(15,23,42,0.55)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
           }}
         >
-          <div
-            style={{
-              width: 40, height: 40, borderRadius: 12, background: "#eff6ff",
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}
-          >
-            <Navigation size={19} color="#2563eb" strokeWidth={2.2} />
-          </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>近くのお店を自動で選びますか？</div>
-            <div style={{ fontSize: 13.5, color: "#64748b", lineHeight: 1.7, marginBottom: 12 }}>
-              位置情報を使うと、地図で範囲を選ぶ手間なく近くのお店の値段をすぐ比べられます。あとから地図タブでいつでも変更できます。
+          <div style={{ background: "#fff", borderRadius: 20, padding: "24px 22px", width: "100%", maxWidth: 360 }}>
+            <div
+              style={{
+                width: 48, height: 48, borderRadius: 14, background: "#eff6ff",
+                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14,
+              }}
+            >
+              <Navigation size={22} color="#2563eb" strokeWidth={2.2} />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>近くのお店を自動で選びますか？</div>
+            <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.8, marginBottom: 16 }}>
+              なぜ位置情報が必要かというと、範囲を地図でひとつずつ選ぶ手間をなくし、あなたの近くのお店の値段だけをすぐ比べられるようにするためです。あとから地図タブでいつでも変更できます。
             </div>
             {geoError && (
-              <div style={{ fontSize: 13, color: "#dc2626", marginBottom: 10 }}>{geoError}</div>
+              <div style={{ fontSize: 13, color: "#dc2626", marginBottom: 12 }}>{geoError}</div>
             )}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <button
                 type="button"
                 onClick={onAllowGeo}
                 disabled={geoRequesting}
                 style={{
-                  border: "none", borderRadius: 10, padding: "9px 16px", background: ACCENT, color: "#fff",
-                  fontSize: 14, fontWeight: 700, opacity: geoRequesting ? 0.6 : 1,
+                  border: "none", borderRadius: 10, padding: "12px 16px", background: ACCENT, color: "#fff",
+                  fontSize: 15, fontWeight: 700, opacity: geoRequesting ? 0.6 : 1,
                 }}
               >
                 {geoRequesting ? "取得中…" : "位置情報を許可する"}
@@ -76,12 +77,26 @@ export default function HomeView({
               <button
                 type="button"
                 onClick={onDismissGeoPrompt}
-                style={{ border: "none", background: "transparent", color: "#64748b", fontSize: 14, padding: "9px 4px" }}
+                style={{ border: "none", background: "transparent", color: "#64748b", fontSize: 14, padding: "8px 4px" }}
               >
                 あとで
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {topDiscountProduct && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 8, background: "#fef2f2",
+            border: "1px solid #fca5a5", borderRadius: 999, padding: "8px 14px", marginBottom: 10,
+          }}
+        >
+          <TrendingDown size={15} color="#dc2626" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: "#991b1b", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {topDiscountProduct.name} 最大{topDiscountProduct.pct}%引き
+          </span>
         </div>
       )}
 

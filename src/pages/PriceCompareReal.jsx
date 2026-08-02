@@ -171,6 +171,19 @@ export default function PriceCompareReal() {
     return discounted;
   }, [historyByPair, storesInRangeIds]);
 
+  // ホーム画面の一番上に「品目名＋最大割引率」だけを簡潔に知らせるための、値引き率が最も高い商品
+  const topDiscountProduct = useMemo(() => {
+    let best = null;
+    for (const p of productsInRange) {
+      for (const pr of p.prices) {
+        if (pr.discount && (!best || pr.discount.pct > best.pct)) {
+          best = { name: p.name, pct: pr.discount.pct };
+        }
+      }
+    }
+    return best;
+  }, [productsInRange]);
+
   const topDiscountStore = useMemo(() => {
     const rates = computeStoreDiscountRates(historyByPair, storesInRangeIds);
     const top = rates[0];
@@ -389,6 +402,7 @@ export default function PriceCompareReal() {
       setView={setView}
       showAuthForm={showAuthForm}
       onCloseAuth={() => setShowAuthForm(false)}
+      cartCount={cart.size}
     >
       {favoritePriceDrops.length > 0 && (
         <div
@@ -437,6 +451,7 @@ export default function PriceCompareReal() {
           onNavigate={setView}
           monthlySavings={getMonthlySavings()}
           topDiscountStore={topDiscountStore}
+          topDiscountProduct={topDiscountProduct}
           onViewStore={(storeId, storeName) => {
             setStoreFilter({ storeId, storeName });
             setDiscountOnly(true);

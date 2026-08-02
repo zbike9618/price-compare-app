@@ -131,6 +131,66 @@ export default function ShoppingListCompare({
         </div>
       ) : (
         <>
+          <div style={{ background: "#2E2521", borderRadius: 18, overflow: "hidden", marginBottom: 14 }}>
+            {cartStoreTotals.map((s, i) => {
+              const isComplete = s.foundCount === cartEntries.length;
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px",
+                    borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    {i === 0 && <Crown size={19} color="#f59e0b" />}
+                    <div>
+                      <div style={{ fontSize: 15 }}>{s.name}</div>
+                      <div
+                        style={{
+                          fontSize: 12.5, fontWeight: isComplete ? 400 : 700,
+                          color: isComplete ? "#4ade80" : "#fb923c",
+                        }}
+                      >
+                        {isComplete ? "全部そろうお店です" : `${s.foundCount}/${cartEntries.length}品目だけあります`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="price-num" style={{ fontSize: 20, fontWeight: 700 }}>{yen(s.total)}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {savingsMessage && (
+            <div
+              style={{
+                display: "flex", alignItems: "center", gap: 10, background: "#ecfdf5",
+                border: "1px solid #4ade80", borderRadius: 12, padding: "13px 16px", marginBottom: 14,
+              }}
+            >
+              <PiggyBank size={21} color="#16a34a" />
+              <span style={{ fontSize: 15, color: "#15803d" }}>
+                <strong>{savingsMessage.cheapestName}</strong>が一番安いです！{savingsMessage.comparedName}より{" "}
+                <strong>{yen(savingsMessage.diff)}</strong>お得ですよ
+                {monthlySavings > 0 && (
+                  <span style={{ color: "#94a3b8" }}>（今月ここまでの節約額: {yen(monthlySavings)}）</span>
+                )}
+              </span>
+            </div>
+          )}
+
+          {multiStoreSavings && (
+            <div
+              style={{
+                marginBottom: 14, fontSize: 13, color: "#64748b", background: "#f8fafc",
+                border: "1px solid #e2e8f0", borderRadius: 12, padding: "10px 14px",
+              }}
+            >
+              品目ごとに一番安いお店で買い回ると、合計は{yen(multiStoreSavings.multiStoreTotal)}（1つのお店でそろえるより{yen(multiStoreSavings.diff)}安くなります）。移動の手間や交通費は含んでいません
+            </div>
+          )}
+
           <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden", marginBottom: 14 }}>
             {cartEntries.map((entry, i) => (
               <div
@@ -180,66 +240,6 @@ export default function ShoppingListCompare({
             >
               <Bookmark size={16} /> このリストを名前をつけて保存
             </button>
-          )}
-
-          {savingsMessage && (
-            <div
-              style={{
-                display: "flex", alignItems: "center", gap: 10, background: "#ecfdf5",
-                border: "1px solid #4ade80", borderRadius: 12, padding: "13px 16px", marginBottom: 14,
-              }}
-            >
-              <PiggyBank size={21} color="#16a34a" />
-              <span style={{ fontSize: 15, color: "#15803d" }}>
-                <strong>{savingsMessage.cheapestName}</strong>が一番安いです！{savingsMessage.comparedName}より{" "}
-                <strong>{yen(savingsMessage.diff)}</strong>お得ですよ
-                {monthlySavings > 0 && (
-                  <span style={{ color: "#94a3b8" }}>（今月ここまでの節約額: {yen(monthlySavings)}）</span>
-                )}
-              </span>
-            </div>
-          )}
-
-          <div style={{ background: "#2E2521", borderRadius: 18, overflow: "hidden" }}>
-            {cartStoreTotals.map((s, i) => {
-              const isComplete = s.foundCount === cartEntries.length;
-              return (
-                <div
-                  key={s.id}
-                  style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px",
-                    borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.1)", color: "#fff",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                    {i === 0 && <Crown size={19} color="#f59e0b" />}
-                    <div>
-                      <div style={{ fontSize: 15 }}>{s.name}</div>
-                      <div
-                        style={{
-                          fontSize: 12.5, fontWeight: isComplete ? 400 : 700,
-                          color: isComplete ? "#4ade80" : "#fb923c",
-                        }}
-                      >
-                        {isComplete ? "全部そろうお店です" : `${s.foundCount}/${cartEntries.length}品目だけあります`}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="price-num" style={{ fontSize: 20, fontWeight: 700 }}>{yen(s.total)}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {multiStoreSavings && (
-            <div
-              style={{
-                marginTop: 12, fontSize: 13, color: "#64748b", background: "#f8fafc",
-                border: "1px solid #e2e8f0", borderRadius: 12, padding: "10px 14px",
-              }}
-            >
-              品目ごとに一番安いお店で買い回ると、合計は{yen(multiStoreSavings.multiStoreTotal)}（1つのお店でそろえるより{yen(multiStoreSavings.diff)}安くなります）。移動の手間や交通費は含んでいません
-            </div>
           )}
         </>
       )}

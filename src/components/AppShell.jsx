@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { id: "favorites", label: "お気に入り", icon: Star },
 ];
 
-export default function AppShell({ view, setView, children, showAuthForm, onCloseAuth }) {
+export default function AppShell({ view, setView, children, showAuthForm, onCloseAuth, cartCount = 0 }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <style>{`
@@ -42,7 +42,10 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
                 color: active ? ACCENT : "#64748b", fontSize: 12,
               }}
             >
-              <Icon size={21} />
+              <span style={{ position: "relative", display: "inline-flex" }}>
+                <Icon size={21} />
+                {item.id === "cart" && cartCount > 0 && <NavBadge count={cartCount} />}
+              </span>
               {item.label}
             </button>
           );
@@ -75,7 +78,10 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
                   border: "none", background: "transparent", color: active ? ACCENT : "#94a3b8", fontSize: 12,
                 }}
               >
-                <Icon size={22} />
+                <span style={{ position: "relative", display: "inline-flex" }}>
+                  <Icon size={22} />
+                  {item.id === "cart" && cartCount > 0 && <NavBadge count={cartCount} />}
+                </span>
                 {item.label}
               </button>
             );
@@ -85,5 +91,19 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
 
       {showAuthForm && <AuthForm onClose={onCloseAuth} />}
     </div>
+  );
+}
+
+function NavBadge({ count }) {
+  return (
+    <span
+      style={{
+        position: "absolute", top: -5, right: -8, minWidth: 15, height: 15, borderRadius: 999,
+        background: "#dc2626", color: "#fff", fontSize: 10, fontWeight: 700, lineHeight: "15px",
+        textAlign: "center", padding: "0 3px",
+      }}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
   );
 }
