@@ -43,6 +43,23 @@ export default function PriceCompareReal() {
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
   const [passcodeUnlocked, setPasscodeUnlocked] = useState(false);
   const [dismissedVersion, setDismissedVersion] = useState(0);
+  const [discountOnly, setDiscountOnly] = useState(false);
+  const [storeFilter, setStoreFilter] = useState(null);
+
+  // 範囲が未設定なら、ホーム表示時に一度だけ現在地を取得して範囲設定を済ませる（地図タブでの手動設定をスキップ）
+  useEffect(() => {
+    if (rangeSetting) return;
+    if (!window.isSecureContext || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const next = { center: { lat: pos.coords.latitude, lng: pos.coords.longitude }, radiusKm: 3 };
+        saveRangeSetting(next);
+        setRangeSetting(next);
+      },
+      () => {} // 拒否・失敗時は何もしない。地図タブでの手動設定に任せる
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -202,9 +219,15 @@ export default function PriceCompareReal() {
     list = [...list].sort((a, b) => {
       if (sortBy === "priceAsc") return a.prices[0].price - b.prices[0].price;
       if (sortBy === "priceDesc") return b.prices[0].price - a.prices[0].price;
+      if (sortBy === "discountDesc") return (b.prices[0].discount?.pct ?? -1) - (a.prices[0].discount?.pct ?? -1);
       if (sortBy === "name") return a.name.localeCompare(b.name, "ja");
       return 0;
     });
+
+    // 値引き率順のときはカテゴリを跨いで純粋に値引き率が高い順に並べたいため、セクション分割せず1つのリストにする
+    if (sortBy === "discountDesc") {
+      return list.length > 0 ? [{ category: "__all__", items: list }] : [];
+    }
 
     const groups = new Map();
     for (const p of list) {
@@ -400,7 +423,29 @@ export default function PriceCompareReal() {
       )}
 
       {view === "home" && (
-        <HomeView onNavigate={setView} monthlySavings={getMonthlySavings()} />
+        <HomeView
+          onNavigate={setView}
+          monthlySavings={getMonthlySavings()}
+          topDiscountStore={topDiscountStore}
+          onViewStore={(storeId, storeName) => {
+            setStoreFilter({ storeId, storeName });
+            setDiscountOnly(false);
+            setSortBy("priceAsc");
+            setView("list");
+          }}
+          onViewDiscountRanking={() => {
+            setStoreFilter(null);
+            setDiscountOnly(true);
+            setSortBy("discountDesc");
+            setView("list");
+          }}
+          onViewAllProducts={() => {
+            setStoreFilter(null);
+            setDiscountOnly(false);
+            setSortBy("priceAsc");
+            setView("list");
+          }}
+        />
       )}
 
       {view === "list" && (
@@ -421,7 +466,10 @@ export default function PriceCompareReal() {
           discountedProductIds={discountedProductIds}
           productHistoryById={productHistoryById}
           rangeHint={rangeHint}
-          topDiscountStore={topDiscountStore}
+          discountOnly={discountOnly}
+          setDiscountOnly={setDiscountOnly}
+          storeFilter={storeFilter}
+          setStoreFilter={setStoreFilter}
         />
       )}
 

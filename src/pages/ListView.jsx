@@ -49,6 +49,7 @@ const SHOW_MORE_STEP = 30;
 const SORT_OPTIONS = [
   { id: "priceAsc", label: "安い順" },
   { id: "priceDesc", label: "高い順" },
+  { id: "discountDesc", label: "値引き率順" },
   { id: "name", label: "名前順" },
 ];
 
@@ -80,13 +81,14 @@ export default function ListView({
   discountedProductIds,
   productHistoryById,
   rangeHint,
-  topDiscountStore,
+  discountOnly,
+  setDiscountOnly,
+  storeFilter,
+  setStoreFilter,
 }) {
   const [expanded, setExpanded] = useState(() => new Set());
   const [visibleCounts, setVisibleCounts] = useState(() => new Map());
-  const [discountOnly, setDiscountOnly] = useState(false);
   const [activeSubcategory, setActiveSubcategory] = useState(null);
-  const [storeFilter, setStoreFilter] = useState(null);
 
   // 検索・カテゴリ絞り込みが変わったら各セクションの表示件数をリセットする
   useEffect(() => {
@@ -140,12 +142,12 @@ export default function ListView({
         .map((s) => ({
           ...s,
           items: s.items
-            .filter((p) => p.prices.some((pr) => pr.storeId === storeFilter))
+            .filter((p) => p.prices.some((pr) => pr.storeId === storeFilter.storeId))
             .map((p) => ({
               ...p,
               prices: [
-                p.prices.find((pr) => pr.storeId === storeFilter),
-                ...p.prices.filter((pr) => pr.storeId !== storeFilter),
+                p.prices.find((pr) => pr.storeId === storeFilter.storeId),
+                ...p.prices.filter((pr) => pr.storeId !== storeFilter.storeId),
               ],
             })),
         }))
@@ -198,33 +200,6 @@ export default function ListView({
 
   return (
     <>
-      {topDiscountStore && (
-        <button
-          type="button"
-          onClick={() => setStoreFilter(topDiscountStore.storeId)}
-          style={{
-            display: "flex", alignItems: "center", gap: 12, background: "#fef2f2", width: "100%",
-            border: "1px solid #fca5a5", borderRadius: 16, padding: "14px 18px", marginBottom: 16, textAlign: "left",
-          }}
-        >
-          <div
-            style={{
-              width: 42, height: 42, borderRadius: 12, background: "#fee2e2",
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}
-          >
-            <Percent size={20} color="#dc2626" strokeWidth={2.2} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#991b1b" }}>
-              今いちばんお得なのは<strong>{topDiscountStore.name}</strong>さんです
-            </div>
-            <div style={{ fontSize: 14, color: "#b91c1c" }}>
-              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です（タップでこの店舗の商品一覧を見る）
-            </div>
-          </div>
-        </button>
-      )}
 
       <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
         {!showHome && (
@@ -363,9 +338,9 @@ export default function ListView({
           <TrendingDown size={17} color="#dc2626" /> 値下げ中
         </p>
       )}
-      {isBrowsingList && storeFilter && topDiscountStore && (
+      {isBrowsingList && storeFilter && (
         <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#991b1b", margin: "0 0 12px" }}>
-          <Percent size={17} color="#dc2626" /> {topDiscountStore.name}の商品一覧
+          <Percent size={17} color="#dc2626" /> {storeFilter.storeName}の商品一覧
         </p>
       )}
 
