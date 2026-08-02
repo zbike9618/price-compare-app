@@ -408,6 +408,9 @@ export default function PriceCompareReal() {
       showAuthForm={showAuthForm}
       onCloseAuth={() => setShowAuthForm(false)}
       cartCount={cart.size}
+      isLoggedIn={!!user}
+      onRequestAuth={() => setShowAuthForm(true)}
+      onSignOut={signOut}
     >
       {favoritePriceDrops.length > 0 && (
         <div
@@ -475,9 +478,6 @@ export default function PriceCompareReal() {
             setSortBy("priceAsc");
             setView("list");
           }}
-          isLoggedIn={!!user}
-          onRequestAuth={() => setShowAuthForm(true)}
-          onSignOut={signOut}
           onRequestOnboarding={() => setShowOnboarding(true)}
           showGeoPrompt={!rangeSetting && !geoPromptDismissed}
           geoRequesting={geoRequesting}

@@ -1,14 +1,34 @@
-import { Home, ShoppingCart, Star } from "lucide-react";
+import { Home, ShoppingCart, Star, LogIn, LogOut } from "lucide-react";
 import AuthForm from "./AuthForm.jsx";
 import { ACCENT, ACCENT_LIGHT } from "../lib/theme.js";
 
-const NAV_ITEMS = [
+const VIEW_NAV_ITEMS = [
   { id: "home", label: "ホーム", icon: Home },
   { id: "cart", label: "比較", icon: ShoppingCart },
   { id: "favorites", label: "お気に入り", icon: Star },
 ];
 
-export default function AppShell({ view, setView, children, showAuthForm, onCloseAuth, cartCount = 0 }) {
+export default function AppShell({
+  view,
+  setView,
+  children,
+  showAuthForm,
+  onCloseAuth,
+  cartCount = 0,
+  isLoggedIn = false,
+  onRequestAuth,
+  onSignOut,
+}) {
+  const navItems = [
+    ...VIEW_NAV_ITEMS,
+    {
+      id: "auth",
+      label: isLoggedIn ? "ログアウト" : "ログイン",
+      icon: isLoggedIn ? LogOut : LogIn,
+      onClick: isLoggedIn ? onSignOut : onRequestAuth,
+    },
+  ];
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <style>{`
@@ -27,15 +47,15 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
           background: "#fff", padding: "22px 8px", gap: 6, flexShrink: 0,
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
-          const active = view === item.id;
+          const active = !item.onClick && view === item.id;
           return (
             <button
               key={item.id}
               type="button"
               data-tour-id={item.id}
-              onClick={() => setView(item.id)}
+              onClick={item.onClick ?? (() => setView(item.id))}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 4px",
                 border: "none", borderRadius: 12, background: active ? ACCENT_LIGHT : "transparent",
@@ -64,15 +84,15 @@ export default function AppShell({ view, setView, children, showAuthForm, onClos
             borderTop: "1px solid #e2e8f0", padding: "8px 4px", zIndex: 2500,
           }}
         >
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const active = view === item.id;
+            const active = !item.onClick && view === item.id;
             return (
               <button
                 key={item.id}
                 type="button"
                 data-tour-id={item.id}
-                onClick={() => setView(item.id)}
+                onClick={item.onClick ?? (() => setView(item.id))}
                 style={{
                   flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "8px 4px",
                   border: "none", background: "transparent", color: active ? ACCENT : "#94a3b8", fontSize: 12,
