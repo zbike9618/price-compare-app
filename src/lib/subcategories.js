@@ -3,65 +3,76 @@
 // スクレイパー側の検索キーワード分類(scraper/lib/categories.js)と対応する語をそのまま流用し、
 // DBスキーマは変更せず商品名の部分一致だけで判定する簡易版。
 // 参考: Zからのヒアリング（スーパーの陳列導線に合わせたい、カテゴリが多すぎてわかりにくい）
+import {
+  Leaf, Carrot, Sprout, Circle, CircleDot, Cherry, LeafyGreen, Salad,
+  Apple, Banana, Citrus, Grape,
+  Ham, Drumstick, Beef, UtensilsCrossed,
+  Fish, FishSymbol, FishingRod, FishingHook,
+  Egg, Square, Package,
+  Milk, Droplets, Triangle,
+  Sandwich, Croissant,
+  Soup,
+  Droplet, Candy,
+} from "lucide-react";
 
 export const OTHER_SUBCATEGORY = "その他";
 
 export const SUBCATEGORIES = {
   野菜: [
-    { label: "キャベツ", keywords: ["キャベツ", "きゃべつ"] },
-    { label: "にんじん", keywords: ["にんじん", "ニンジン", "人参"] },
-    { label: "大根", keywords: ["大根"] },
-    { label: "玉ねぎ", keywords: ["玉ねぎ", "たまねぎ", "タマネギ", "玉葱"] },
-    { label: "じゃがいも", keywords: ["じゃがいも", "ジャガイモ"] },
-    { label: "トマト", keywords: ["トマト", "とまと"] },
-    { label: "きゅうり", keywords: ["きゅうり", "キュウリ"] },
-    { label: "ほうれん草", keywords: ["ほうれん草"] },
+    { label: "キャベツ", keywords: ["キャベツ", "きゃべつ"], icon: Leaf },
+    { label: "にんじん", keywords: ["にんじん", "ニンジン", "人参"], icon: Carrot },
+    { label: "大根", keywords: ["大根"], icon: Sprout },
+    { label: "玉ねぎ", keywords: ["玉ねぎ", "たまねぎ", "タマネギ", "玉葱"], icon: Circle },
+    { label: "じゃがいも", keywords: ["じゃがいも", "ジャガイモ"], icon: CircleDot },
+    { label: "トマト", keywords: ["トマト", "とまと"], icon: Cherry },
+    { label: "きゅうり", keywords: ["きゅうり", "キュウリ"], icon: LeafyGreen },
+    { label: "ほうれん草", keywords: ["ほうれん草"], icon: Salad },
   ],
   果物: [
-    { label: "りんご", keywords: ["りんご", "リンゴ"] },
-    { label: "バナナ", keywords: ["バナナ"] },
-    { label: "みかん", keywords: ["みかん", "ミカン"] },
-    { label: "いちご", keywords: ["いちご", "イチゴ"] },
+    { label: "りんご", keywords: ["りんご", "リンゴ"], icon: Apple },
+    { label: "バナナ", keywords: ["バナナ"], icon: Banana },
+    { label: "みかん", keywords: ["みかん", "ミカン"], icon: Citrus },
+    { label: "いちご", keywords: ["いちご", "イチゴ"], icon: Grape },
   ],
   精肉: [
-    { label: "豚肉", keywords: ["豚肉"] },
-    { label: "鶏肉", keywords: ["鶏肉", "とり肉"] },
-    { label: "牛肉", keywords: ["牛肉"] },
-    { label: "ひき肉", keywords: ["ひき肉", "挽肉", "ミンチ"] },
+    { label: "豚肉", keywords: ["豚肉"], icon: Ham },
+    { label: "鶏肉", keywords: ["鶏肉", "とり肉"], icon: Drumstick },
+    { label: "牛肉", keywords: ["牛肉"], icon: Beef },
+    { label: "ひき肉", keywords: ["ひき肉", "挽肉", "ミンチ"], icon: UtensilsCrossed },
   ],
   魚介: [
-    { label: "鮭", keywords: ["鮭", "サーモン"] },
-    { label: "さば", keywords: ["さば", "サバ"] },
-    { label: "まぐろ", keywords: ["まぐろ", "マグロ"] },
-    { label: "えび", keywords: ["えび", "エビ"] },
+    { label: "鮭", keywords: ["鮭", "サーモン"], icon: Fish },
+    { label: "さば", keywords: ["さば", "サバ"], icon: FishSymbol },
+    { label: "まぐろ", keywords: ["まぐろ", "マグロ"], icon: FishingRod },
+    { label: "えび", keywords: ["えび", "エビ"], icon: FishingHook },
   ],
   日配食品: [
-    { label: "卵", keywords: ["卵", "たまご"] },
-    { label: "豆腐", keywords: ["豆腐"] },
-    { label: "納豆", keywords: ["納豆"] },
+    { label: "卵", keywords: ["卵", "たまご"], icon: Egg },
+    { label: "豆腐", keywords: ["豆腐"], icon: Square },
+    { label: "納豆", keywords: ["納豆"], icon: Package },
   ],
   乳製品: [
-    { label: "牛乳", keywords: ["牛乳"] },
-    { label: "ヨーグルト", keywords: ["ヨーグルト"] },
-    { label: "チーズ", keywords: ["チーズ"] },
-    { label: "バター", keywords: ["バター"] },
+    { label: "牛乳", keywords: ["牛乳"], icon: Milk },
+    { label: "ヨーグルト", keywords: ["ヨーグルト"], icon: Droplets },
+    { label: "チーズ", keywords: ["チーズ"], icon: Triangle },
+    { label: "バター", keywords: ["バター"], icon: Square },
   ],
   パン類: [
-    { label: "食パン", keywords: ["食パン"] },
-    { label: "ロールパン", keywords: ["ロールパン"] },
+    { label: "食パン", keywords: ["食パン"], icon: Sandwich },
+    { label: "ロールパン", keywords: ["ロールパン"], icon: Croissant },
   ],
   麺類: [
-    { label: "うどん", keywords: ["うどん"] },
-    { label: "パスタ", keywords: ["パスタ", "スパゲティ", "スパゲッティ"] },
+    { label: "うどん", keywords: ["うどん"], icon: Soup },
+    { label: "パスタ", keywords: ["パスタ", "スパゲティ", "スパゲッティ"], icon: UtensilsCrossed },
   ],
   調味料: [
-    { label: "醤油", keywords: ["醤油", "しょうゆ"] },
-    { label: "味噌", keywords: ["味噌", "みそ"] },
-    { label: "砂糖", keywords: ["砂糖"] },
-    { label: "食用油", keywords: ["食用油", "サラダ油"] },
+    { label: "醤油", keywords: ["醤油", "しょうゆ"], icon: Droplet },
+    { label: "味噌", keywords: ["味噌", "みそ"], icon: Circle },
+    { label: "砂糖", keywords: ["砂糖"], icon: Candy },
+    { label: "食用油", keywords: ["食用油", "サラダ油"], icon: Droplets },
   ],
   日用品: [
-    { label: "ティッシュ", keywords: ["ティッシュ"] },
+    { label: "ティッシュ", keywords: ["ティッシュ"], icon: Package },
   ],
 };
 

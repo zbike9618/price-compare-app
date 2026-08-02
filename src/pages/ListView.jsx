@@ -309,13 +309,13 @@ export default function ListView({
             {subcategoryDefs.map((def) => {
               const count = subcategoryStats.counts.get(def.label) ?? 0;
               if (count === 0) return null;
-              const style = CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE;
+              const color = (CATEGORY_STYLE[activeCategory] ?? DEFAULT_CATEGORY_STYLE).color;
               return (
                 <CategoryCard
                   key={def.label}
                   label={def.label}
-                  Icon={style.icon}
-                  color={style.color}
+                  Icon={def.icon ?? DEFAULT_CATEGORY_STYLE.icon}
+                  color={color}
                   count={count}
                   onClick={() => setActiveSubcategory(def.label)}
                 />
