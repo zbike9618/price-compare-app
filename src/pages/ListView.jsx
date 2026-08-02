@@ -86,11 +86,12 @@ export default function ListView({
   const [visibleCounts, setVisibleCounts] = useState(() => new Map());
   const [discountOnly, setDiscountOnly] = useState(false);
   const [activeSubcategory, setActiveSubcategory] = useState(null);
+  const [storeFilter, setStoreFilter] = useState(null);
 
   // 検索・カテゴリ絞り込みが変わったら各セクションの表示件数をリセットする
   useEffect(() => {
     setVisibleCounts(new Map());
-  }, [query, activeCategory, activeSubcategory, discountOnly]);
+  }, [query, activeCategory, activeSubcategory, discountOnly, storeFilter]);
 
   useEffect(() => {
     setActiveSubcategory(null);
@@ -117,10 +118,11 @@ export default function ListView({
   })();
 
   const showSubcategoryGrid =
-    activeCategory !== null && activeSubcategory === null && !discountOnly && query.trim() === "" && subcategoryDefs.length > 0;
+    activeCategory !== null && activeSubcategory === null && !discountOnly && !storeFilter && query.trim() === "" && subcategoryDefs.length > 0;
 
   const isBrowsingList =
     discountOnly ||
+    !!storeFilter ||
     query.trim() !== "" ||
     activeSubcategory !== null ||
     (activeCategory !== null && subcategoryDefs.length === 0);
@@ -130,6 +132,23 @@ export default function ListView({
     if (discountOnly) {
       sections = sections
         .map((s) => ({ ...s, items: s.items.filter((p) => discountedProductIds.has(p.id)) }))
+        .filter((s) => s.items.length > 0);
+    }
+    if (storeFilter) {
+      // その店舗が扱っている商品だけに絞り込み、店舗の価格が先頭（=最安値として表示）に来るよう並べ替える
+      sections = sections
+        .map((s) => ({
+          ...s,
+          items: s.items
+            .filter((p) => p.prices.some((pr) => pr.storeId === storeFilter))
+            .map((p) => ({
+              ...p,
+              prices: [
+                p.prices.find((pr) => pr.storeId === storeFilter),
+                ...p.prices.filter((pr) => pr.storeId !== storeFilter),
+              ],
+            })),
+        }))
         .filter((s) => s.items.length > 0);
     }
     if (activeSubcategory !== null) {
@@ -153,6 +172,7 @@ export default function ListView({
       setActiveCategory(null);
     } else {
       setDiscountOnly(false);
+      setStoreFilter(null);
       setQuery("");
     }
   };
@@ -174,15 +194,17 @@ export default function ListView({
     });
   };
 
-  const showHome = activeCategory === null && !discountOnly && query.trim() === "";
+  const showHome = activeCategory === null && !discountOnly && !storeFilter && query.trim() === "";
 
   return (
     <>
       {topDiscountStore && (
-        <div
+        <button
+          type="button"
+          onClick={() => setStoreFilter(topDiscountStore.storeId)}
           style={{
-            display: "flex", alignItems: "center", gap: 12, background: "#fef2f2",
-            border: "1px solid #fca5a5", borderRadius: 16, padding: "14px 18px", marginBottom: 16,
+            display: "flex", alignItems: "center", gap: 12, background: "#fef2f2", width: "100%",
+            border: "1px solid #fca5a5", borderRadius: 16, padding: "14px 18px", marginBottom: 16, textAlign: "left",
           }}
         >
           <div
@@ -198,10 +220,10 @@ export default function ListView({
               今いちばんお得なのは<strong>{topDiscountStore.name}</strong>さんです
             </div>
             <div style={{ fontSize: 14, color: "#b91c1c" }}>
-              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です
+              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です（タップでこの店舗の商品一覧を見る）
             </div>
           </div>
-        </div>
+        </button>
       )}
 
       <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
@@ -257,6 +279,15 @@ export default function ListView({
               gap: 12, marginBottom: 18,
             }}
           >
+            {discountedCount > 0 && (
+              <CategoryCard
+                label="値下げ中"
+                Icon={TrendingDown}
+                color="#dc2626"
+                count={discountedCount}
+                onClick={() => setDiscountOnly(true)}
+              />
+            )}
             {sortByStoreLayout(categories).map((c) => {
               const style = CATEGORY_STYLE[c] ?? DEFAULT_CATEGORY_STYLE;
               return (
@@ -270,15 +301,6 @@ export default function ListView({
                 />
               );
             })}
-            {discountedCount > 0 && (
-              <CategoryCard
-                label="値下げ中"
-                Icon={TrendingDown}
-                color="#dc2626"
-                count={discountedCount}
-                onClick={() => setDiscountOnly(true)}
-              />
-            )}
           </div>
         </>
       )}
@@ -339,6 +361,11 @@ export default function ListView({
       {isBrowsingList && discountOnly && (
         <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#dc2626", margin: "0 0 12px" }}>
           <TrendingDown size={17} color="#dc2626" /> 値下げ中
+        </p>
+      )}
+      {isBrowsingList && storeFilter && topDiscountStore && (
+        <p style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 15, fontWeight: 700, color: "#991b1b", margin: "0 0 12px" }}>
+          <Percent size={17} color="#dc2626" /> {topDiscountStore.name}の商品一覧
         </p>
       )}
 

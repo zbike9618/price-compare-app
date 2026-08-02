@@ -147,7 +147,7 @@ export default function PriceCompareReal() {
     const top = rates[0];
     if (!top || top.discounted === 0) return null;
     const name = stores.find((s) => s.id === top.storeId)?.name ?? "不明な店舗";
-    return { name, rate: top.rate, discounted: top.discounted, total: top.total };
+    return { storeId: top.storeId, name, rate: top.rate, discounted: top.discounted, total: top.total };
   }, [historyByPair, storesInRangeIds, stores]);
 
   const productHistoryById = useMemo(() => {
