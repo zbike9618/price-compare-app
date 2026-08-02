@@ -1,5 +1,5 @@
 // src/pages/HomeView.jsx
-import { List, ShoppingCart, MapPin, Star, TrendingDown, Percent } from "lucide-react";
+import { List, ShoppingCart, MapPin, Star, TrendingDown, Percent, LogIn, LogOut, HelpCircle } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { ACCENT } from "../lib/theme.js";
 
@@ -10,13 +10,25 @@ export default function HomeView({
   onViewStore,
   onViewDiscountRanking,
   onViewAllProducts,
+  isLoggedIn,
+  onRequestAuth,
+  onSignOut,
+  onRequestOnboarding,
 }) {
   const cards = [
-    { id: "discountRanking", label: "値引き率が高い順で見る", icon: TrendingDown, onClick: onViewDiscountRanking },
-    { id: "allProducts", label: "商品一覧を見る", icon: List, onClick: onViewAllProducts },
-    { id: "cart", label: "買い物リストで比較", icon: ShoppingCart, onClick: () => onNavigate("cart") },
-    { id: "map", label: "地図で探す", icon: MapPin, onClick: () => onNavigate("map") },
-    { id: "favorites", label: "お気に入り", icon: Star, onClick: () => onNavigate("favorites") },
+    { id: "discountRanking", label: "値引き率が高い順で見る", icon: TrendingDown, onClick: onViewDiscountRanking, tourId: null },
+    { id: "allProducts", label: "商品一覧を見る", icon: List, onClick: onViewAllProducts, tourId: "list" },
+    { id: "cart", label: "買い物リストで比較", icon: ShoppingCart, onClick: () => onNavigate("cart"), tourId: "cart" },
+    { id: "map", label: "地図で探す", icon: MapPin, onClick: () => onNavigate("map"), tourId: "map" },
+    { id: "favorites", label: "お気に入り", icon: Star, onClick: () => onNavigate("favorites"), tourId: "favorites" },
+    {
+      id: "auth",
+      label: isLoggedIn ? "ログアウト" : "ログイン",
+      icon: isLoggedIn ? LogOut : LogIn,
+      onClick: isLoggedIn ? onSignOut : onRequestAuth,
+      tourId: null,
+    },
+    { id: "help", label: "使い方", icon: HelpCircle, onClick: onRequestOnboarding, tourId: null },
   ];
 
   return (
@@ -54,7 +66,7 @@ export default function HomeView({
               今いちばんお得なのは<strong>{topDiscountStore.name}</strong>さんです
             </div>
             <div style={{ fontSize: 14, color: "#b91c1c" }}>
-              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です（タップでこの店舗の商品一覧を見る）
+              {topDiscountStore.discounted}/{topDiscountStore.total}品目、約{Math.round(topDiscountStore.rate * 100)}%が値下げ中です（タップでこの店舗の値引き商品一覧を見る）
             </div>
           </div>
         </button>
@@ -67,6 +79,7 @@ export default function HomeView({
             <button
               key={card.id}
               type="button"
+              data-tour-id={card.tourId ?? undefined}
               onClick={card.onClick}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",

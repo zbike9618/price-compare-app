@@ -23,7 +23,7 @@ import { ACCENT } from "../lib/theme.js";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export default function PriceCompareReal() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavorites(user);
 
   const [loading, setLoading] = useState(true);
@@ -376,9 +376,7 @@ export default function PriceCompareReal() {
       view={view}
       setView={setView}
       showAuthForm={showAuthForm}
-      onRequestAuth={() => setShowAuthForm(true)}
       onCloseAuth={() => setShowAuthForm(false)}
-      onRequestOnboarding={() => setShowOnboarding(true)}
     >
       {favoritePriceDrops.length > 0 && (
         <div
@@ -429,8 +427,8 @@ export default function PriceCompareReal() {
           topDiscountStore={topDiscountStore}
           onViewStore={(storeId, storeName) => {
             setStoreFilter({ storeId, storeName });
-            setDiscountOnly(false);
-            setSortBy("priceAsc");
+            setDiscountOnly(true);
+            setSortBy("discountDesc");
             setView("list");
           }}
           onViewDiscountRanking={() => {
@@ -445,6 +443,10 @@ export default function PriceCompareReal() {
             setSortBy("priceAsc");
             setView("list");
           }}
+          isLoggedIn={!!user}
+          onRequestAuth={() => setShowAuthForm(true)}
+          onSignOut={signOut}
+          onRequestOnboarding={() => setShowOnboarding(true)}
         />
       )}
 

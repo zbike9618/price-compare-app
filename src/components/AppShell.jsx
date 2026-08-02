@@ -1,19 +1,14 @@
-import { Home, ShoppingCart, List, MapPin, Star, LogIn, LogOut, HelpCircle } from "lucide-react";
-import { useAuth } from "../lib/AuthContext.jsx";
+import { Home, ShoppingCart, Star } from "lucide-react";
 import AuthForm from "./AuthForm.jsx";
 import { ACCENT, ACCENT_LIGHT } from "../lib/theme.js";
 
 const NAV_ITEMS = [
   { id: "home", label: "ホーム", icon: Home },
-  { id: "list", label: "最安値", icon: List },
   { id: "cart", label: "比較", icon: ShoppingCart },
-  { id: "map", label: "地図", icon: MapPin },
   { id: "favorites", label: "お気に入り", icon: Star },
 ];
 
-export default function AppShell({ view, setView, children, showAuthForm, onRequestAuth, onCloseAuth, onRequestOnboarding }) {
-  const { isLoggedIn, signOut } = useAuth();
-
+export default function AppShell({ view, setView, children, showAuthForm, onCloseAuth }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <style>{`
@@ -52,35 +47,6 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
             </button>
           );
         })}
-        <button
-          type="button"
-          onClick={onRequestOnboarding}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 4px", border: "none", background: "transparent", color: "#64748b", fontSize: 12, width: "100%" }}
-        >
-          <HelpCircle size={21} />
-          使い方
-        </button>
-        <div style={{ marginTop: "auto" }}>
-          {isLoggedIn ? (
-            <button
-              type="button"
-              onClick={signOut}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 4px", border: "none", background: "transparent", color: "#64748b", fontSize: 12, width: "100%" }}
-            >
-              <LogOut size={21} />
-              ログアウト
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onRequestAuth}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 4px", border: "none", background: "transparent", color: "#64748b", fontSize: 12, width: "100%" }}
-            >
-              <LogIn size={21} />
-              ログイン
-            </button>
-          )}
-        </div>
       </nav>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -114,28 +80,6 @@ export default function AppShell({ view, setView, children, showAuthForm, onRequ
               </button>
             );
           })}
-          <button
-            type="button"
-            onClick={() => (isLoggedIn ? signOut() : onRequestAuth())}
-            style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "8px 4px",
-              border: "none", background: "transparent", color: "#94a3b8", fontSize: 12,
-            }}
-          >
-            {isLoggedIn ? <LogOut size={22} /> : <LogIn size={22} />}
-            {isLoggedIn ? "ログアウト" : "ログイン"}
-          </button>
-          <button
-            type="button"
-            onClick={onRequestOnboarding}
-            style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "8px 4px",
-              border: "none", background: "transparent", color: "#94a3b8", fontSize: 12,
-            }}
-          >
-            <HelpCircle size={22} />
-            使い方
-          </button>
         </nav>
       </div>
 

@@ -131,11 +131,6 @@ export default function ListView({
 
   const visibleSections = (() => {
     let sections = sectionedProducts;
-    if (discountOnly) {
-      sections = sections
-        .map((s) => ({ ...s, items: s.items.filter((p) => discountedProductIds.has(p.id)) }))
-        .filter((s) => s.items.length > 0);
-    }
     if (storeFilter) {
       // その店舗が扱っている商品だけに絞り込み、店舗の価格が先頭（=最安値として表示）に来るよう並べ替える
       sections = sections
@@ -153,6 +148,15 @@ export default function ListView({
         }))
         .filter((s) => s.items.length > 0);
     }
+    if (discountOnly) {
+      // 店舗で絞り込み中は「その店舗で」値引き中かどうかで判定する（先頭に並べ替え済みのprices[0]を見る）
+      sections = sections
+        .map((s) => ({
+          ...s,
+          items: s.items.filter((p) => (storeFilter ? p.prices[0].discount != null : discountedProductIds.has(p.id))),
+        }))
+        .filter((s) => s.items.length > 0);
+    }
     if (activeSubcategory !== null) {
       sections = sections
         .map((s) => ({
@@ -163,6 +167,13 @@ export default function ListView({
           }),
         }))
         .filter((s) => s.items.length > 0);
+    }
+    if (storeFilter && sortBy === "discountDesc") {
+      // 店舗で絞り込み中は、その店舗の値引き率で並べ直す（全体最安値店基準のソートのままだと表示価格とズレるため）
+      sections = sections.map((s) => ({
+        ...s,
+        items: [...s.items].sort((a, b) => (b.prices[0].discount?.pct ?? -1) - (a.prices[0].discount?.pct ?? -1)),
+      }));
     }
     return sections;
   })();
