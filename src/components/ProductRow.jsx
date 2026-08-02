@@ -31,92 +31,101 @@ export default function ProductRow({
 
   return (
     <div style={{ borderTop: "1px solid #f1f5f9" }}>
-      <div style={{ padding: "13px 18px", display: "flex", alignItems: "center", gap: 10 }}>
-        <button
-          type="button"
-          onClick={onToggleFavorite}
-          aria-label="お気に入り"
-          style={{ border: "none", background: "transparent", padding: 0, flexShrink: 0 }}
-        >
-          <Star size={19} color={isFavorite ? "#f59e0b" : "#cbd5e1"} fill={isFavorite ? "#f59e0b" : "none"} />
-        </button>
+      <div style={{ padding: "13px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            aria-label="お気に入り"
+            style={{ border: "none", background: "transparent", padding: 0, flexShrink: 0, marginTop: 1 }}
+          >
+            <Star size={19} color={isFavorite ? "#f59e0b" : "#cbd5e1"} fill={isFavorite ? "#f59e0b" : "none"} />
+          </button>
 
-        <button
-          type="button"
-          onClick={onToggleExpand}
-          style={{
-            flex: 1, display: "flex", alignItems: "center", gap: 10, border: "none",
-            background: "transparent", textAlign: "left", padding: 0, minWidth: 0,
-          }}
-        >
-          {others.length > 0 ? (
-            isOpen ? (
-              <ChevronDown size={17} color="#94a3b8" style={{ flexShrink: 0 }} />
-            ) : (
-              <ChevronRight size={17} color="#94a3b8" style={{ flexShrink: 0 }} />
-            )
-          ) : (
-            <span style={{ width: 17, flexShrink: 0 }} />
-          )}
-          <div
+          <button
+            type="button"
+            onClick={onToggleExpand}
             style={{
-              width: 34, height: 34, borderRadius: 10, background: `${categoryStyle.color}1A`,
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              flex: 1, display: "flex", alignItems: "flex-start", gap: 10, border: "none",
+              background: "transparent", textAlign: "left", padding: 0, minWidth: 0,
             }}
           >
-            <Icon size={17} color={categoryStyle.color} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {product.name}
-              </span>
-              {isDiscounted && (
+            {others.length > 0 ? (
+              isOpen ? (
+                <ChevronDown size={17} color="#94a3b8" style={{ flexShrink: 0, marginTop: 8 }} />
+              ) : (
+                <ChevronRight size={17} color="#94a3b8" style={{ flexShrink: 0, marginTop: 8 }} />
+              )
+            ) : (
+              <span style={{ width: 17, flexShrink: 0 }} />
+            )}
+            <div
+              style={{
+                width: 34, height: 34, borderRadius: 10, background: `${categoryStyle.color}1A`,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}
+            >
+              <Icon size={17} color={categoryStyle.color} />
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                 <span
                   style={{
-                    display: "inline-flex", alignItems: "center", gap: 3, background: "#fee2e2", color: "#dc2626",
-                    fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
+                    fontSize: 15, fontWeight: 700, wordBreak: "break-word",
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                   }}
                 >
-                  <TrendingDown size={12} /> {summaryDiscount ? `${summaryDiscount.pct}%引き` : "値下げ"}
+                  {product.name}
                 </span>
-              )}
-              {summaryIsNewLow && (
-                <span
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 3, background: "#fef3c7", color: "#b45309",
-                    fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
-                  }}
-                >
-                  <Award size={12} /> 30日で最安
-                </span>
-              )}
+                {isDiscounted && (
+                  <span
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 3, background: "#fee2e2", color: "#dc2626",
+                      fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
+                    }}
+                  >
+                    <TrendingDown size={12} /> {summaryDiscount ? `${summaryDiscount.pct}%引き` : "値下げ"}
+                  </span>
+                )}
+                {summaryIsNewLow && (
+                  <span
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 3, background: "#fef3c7", color: "#b45309",
+                      fontSize: 12, fontWeight: 700, padding: "3px 7px", borderRadius: 6, flexShrink: 0,
+                    }}
+                  >
+                    <Award size={12} /> 30日で最安
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                {others.length > 0 ? `${product.prices.length}店舗で比べられます` : "1店舗のみ"}
+              </div>
             </div>
-            <div style={{ fontSize: 13, color: "#94a3b8" }}>
-              {others.length > 0 ? `${product.prices.length}店舗で比べられます` : "1店舗のみ"}
-            </div>
-          </div>
-        </button>
-
-        <div className="price-num" style={{ textAlign: "right", flexShrink: 0 }}>
-          {cheapest.discount && (
-            <div style={{ fontSize: 12.5, color: "#94a3b8", textDecoration: "line-through" }}>
-              {yen(cheapest.price + cheapest.discount.diff)}
-            </div>
-          )}
-          <div style={{ fontSize: 17, fontWeight: 700, color: "#16a34a" }}>{yen(cheapest.price)}</div>
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onToggleCart}
-          style={{
-            border: `1px solid ${ACCENT}`, borderRadius: 10, padding: "6px 12px", flexShrink: 0,
-            background: isInCart ? ACCENT : "#fff", color: isInCart ? "#fff" : ACCENT, fontSize: 13,
-          }}
-        >
-          {isInCart ? "追加ずみ" : "追加"}
-        </button>
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+          <div className="price-num" style={{ textAlign: "right", flexShrink: 0 }}>
+            {cheapest.discount && (
+              <span style={{ fontSize: 12.5, color: "#94a3b8", textDecoration: "line-through", marginRight: 6 }}>
+                {yen(cheapest.price + cheapest.discount.diff)}
+              </span>
+            )}
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#16a34a" }}>{yen(cheapest.price)}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleCart}
+            style={{
+              border: `1px solid ${ACCENT}`, borderRadius: 10, padding: "6px 12px", flexShrink: 0,
+              background: isInCart ? ACCENT : "#fff", color: isInCart ? "#fff" : ACCENT, fontSize: 13,
+            }}
+          >
+            {isInCart ? "追加ずみ" : "追加"}
+          </button>
+        </div>
       </div>
 
       {isOpen && others.length > 0 && (

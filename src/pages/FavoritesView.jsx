@@ -57,27 +57,36 @@ export default function FavoritesView({ products, favoriteIds, isLoggedIn, onOpe
             <div
               key={p.id}
               style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "14px 18px",
+                display: "flex", flexDirection: "column", gap: 8, padding: "14px 18px",
                 borderTop: i === 0 ? "none" : "1px solid #f1f5f9",
               }}
             >
-              <button
-                type="button"
-                onClick={() => onToggleFavorite(p.id)}
-                aria-label="お気に入り解除"
-                style={{ border: "none", background: "transparent", padding: 0, flexShrink: 0 }}
-              >
-                <Star size={19} color="#f59e0b" fill="#f59e0b" />
-              </button>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
-                <div style={{ fontSize: 13, color: "#94a3b8" }}>{cheapest.storeName} {yen(cheapest.price)}</div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(p.id)}
+                  aria-label="お気に入り解除"
+                  style={{ border: "none", background: "transparent", padding: 0, flexShrink: 0, marginTop: 1 }}
+                >
+                  <Star size={19} color="#f59e0b" fill="#f59e0b" />
+                </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 15, fontWeight: 700, wordBreak: "break-word",
+                      display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                    }}
+                  >
+                    {p.name}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#94a3b8" }}>{cheapest.storeName} {yen(cheapest.price)}</div>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => onAddProductToCart(p.id)}
                 style={{
-                  border: `1px solid ${ACCENT}`, borderRadius: 10, padding: "6px 12px", flexShrink: 0,
+                  alignSelf: "flex-end", border: `1px solid ${ACCENT}`, borderRadius: 10, padding: "6px 12px", flexShrink: 0,
                   background: isInCart ? ACCENT : "#fff", color: isInCart ? "#fff" : ACCENT, fontSize: 13,
                 }}
               >
