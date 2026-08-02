@@ -21,6 +21,34 @@ describe("isPriceDrop", () => {
     expect(isPriceDrop([{ price: 150, scrapedAt: "x" }])).toBe(false);
     expect(isPriceDrop([])).toBe(false);
   });
+
+  it("同日に複数回スクレイピングされていても、直近の異なる日付同士で比較する", () => {
+    // 8/1に手動実行(10:43)+定期実行(19:00)が重なり、直近2件が同日ペアになったケース。
+    // 直近2件(同日・同額)だけを見ると値下げなしに見えるが、前日と比べると値下げしている
+    const historyDesc = [
+      { price: 100, scrapedAt: "2026-08-01T19:00:00Z" },
+      { price: 100, scrapedAt: "2026-08-01T10:43:00Z" },
+      { price: 120, scrapedAt: "2026-07-31T19:00:00Z" },
+    ];
+    expect(isPriceDrop(historyDesc)).toBe(true);
+  });
+
+  it("同日複数回の実行があっても、実際に値下げでなければfalse", () => {
+    const historyDesc = [
+      { price: 120, scrapedAt: "2026-08-01T19:00:00Z" },
+      { price: 100, scrapedAt: "2026-08-01T10:43:00Z" },
+      { price: 100, scrapedAt: "2026-07-31T19:00:00Z" },
+    ];
+    expect(isPriceDrop(historyDesc)).toBe(false);
+  });
+
+  it("異なる日付が1日分しかなければfalse", () => {
+    const historyDesc = [
+      { price: 90, scrapedAt: "2026-08-01T19:00:00Z" },
+      { price: 100, scrapedAt: "2026-08-01T10:43:00Z" },
+    ];
+    expect(isPriceDrop(historyDesc)).toBe(false);
+  });
 });
 
 describe("isRecentPriceDrop", () => {
@@ -80,6 +108,15 @@ describe("computeDiscountInfo", () => {
       { price: 140, scrapedAt: "2026-07-15T00:00:00Z" },
     ];
     expect(computeDiscountInfo(historyDesc)).toEqual({ diff: 20, pct: 11 });
+  });
+
+  it("同日に複数回スクレイピングされていても、直近の異なる日付同士で差額を計算する", () => {
+    const historyDesc = [
+      { price: 90, scrapedAt: "2026-08-01T19:00:00Z" },
+      { price: 90, scrapedAt: "2026-08-01T10:43:00Z" },
+      { price: 100, scrapedAt: "2026-07-31T19:00:00Z" },
+    ];
+    expect(computeDiscountInfo(historyDesc)).toEqual({ diff: 10, pct: 10 });
   });
 });
 

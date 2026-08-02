@@ -1,13 +1,35 @@
 // src/lib/discount.js
 
 /**
- * 直近の価格が、その前のスクレイピング時より安いかどうかを判定する（シンプルな値下げ判定）。
+ * 価格履歴を「日付ごとの最新レコード」に間引く。同日に複数回スクレイピングが実行された場合、
+ * 直近2件の単純比較だと同日の実行同士を比較してしまい値下げを検出できなくなるため、
+ * 値下げ判定は必ずこの関数を通した「日付ごとの代表値」で行う。
+ * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順で並んだ価格履歴
+ * @returns {Array<{ price: number, scrapedAt: string }>} 日付降順・各日付の最新1件のみ
+ */
+function latestPerDay(historyDesc) {
+  if (!historyDesc) return [];
+  const seenDates = new Set();
+  const result = [];
+  for (const h of historyDesc) {
+    const date = h.scrapedAt.slice(0, 10);
+    if (seenDates.has(date)) continue;
+    seenDates.add(date);
+    result.push(h);
+  }
+  return result;
+}
+
+/**
+ * 直近の価格が、その前のスクレイピング日より安いかどうかを判定する（シンプルな値下げ判定）。
+ * 同日の複数回実行は同じ日の1レコードとして扱う（詳細はlatestPerDay参照）。
  * @param {Array<{ price: number, scrapedAt: string }>} historyDesc scrapedAt降順（最新が先頭）で並んだ、直近30日分の価格履歴
  * @returns {boolean}
  */
 export function isPriceDrop(historyDesc) {
-  if (!historyDesc || historyDesc.length < 2) return false;
-  const [latest, previous] = historyDesc;
+  const byDay = latestPerDay(historyDesc);
+  if (byDay.length < 2) return false;
+  const [latest, previous] = byDay;
   return latest.price < previous.price;
 }
 
@@ -31,7 +53,7 @@ export function isRecentPriceDrop(historyDesc) {
  */
 export function computeDiscountInfo(historyDesc) {
   if (!isPriceDrop(historyDesc)) return null;
-  const [latest, previous] = historyDesc;
+  const [latest, previous] = latestPerDay(historyDesc);
   const diff = previous.price - latest.price;
   const pct = Math.round((diff / previous.price) * 100);
   return { diff, pct };
