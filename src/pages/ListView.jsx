@@ -43,6 +43,19 @@ const DEFAULT_CATEGORY_STYLE = { icon: Package, color: "#64748b" };
 // スーパーの店舗内導線（入口→レジ）に合わせた表示順
 const CATEGORY_ORDER = ["野菜", "果物", "精肉", "魚介", "日配食品", "乳製品", "パン類", "麺類", "調味料", "日用品"];
 
+// カテゴリ数が多く見にくいため、ホーム画面のカテゴリ一覧を「食品」「日用品・その他」で絞り込めるようにする。
+// マップに無い新規カテゴリ（AI分類で新設されたもの等）は食品と誤認しないよう「日用品・その他」側に倒す
+const FOOD_CATEGORIES = new Set([
+  "野菜", "果物", "精肉", "魚介", "日配食品", "乳製品", "パン類", "麺類", "調味料",
+  "菓子", "冷凍食品", "ベビーフード", "飲料", "加工食品", "健康食品", "乾物・シリアル",
+  "惣菜", "デザート", "介護食品",
+]);
+
+const CATEGORY_GROUPS = [
+  { id: "food", label: "食品" },
+  { id: "other", label: "日用品・その他" },
+];
+
 const INITIAL_VISIBLE_COUNT = 20;
 const SHOW_MORE_STEP = 30;
 
@@ -89,6 +102,7 @@ export default function ListView({
   const [expanded, setExpanded] = useState(() => new Set());
   const [visibleCounts, setVisibleCounts] = useState(() => new Map());
   const [activeSubcategory, setActiveSubcategory] = useState(null);
+  const [categoryGroup, setCategoryGroup] = useState("food");
 
   // 検索・カテゴリ絞り込みが変わったら各セクションの表示件数をリセットする
   useEffect(() => {
@@ -260,6 +274,22 @@ export default function ListView({
       {showHome && (
         <>
           <p style={{ fontSize: 15, fontWeight: 700, color: "#64748b", margin: "0 0 12px" }}>何をお探しですか？</p>
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {CATEGORY_GROUPS.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setCategoryGroup(g.id)}
+                style={{
+                  flex: 1, border: `1px solid ${categoryGroup === g.id ? ACCENT : "#e2e8f0"}`, borderRadius: 999,
+                  padding: "9px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                  background: categoryGroup === g.id ? ACCENT : "#fff", color: categoryGroup === g.id ? "#fff" : "#64748b",
+                }}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
           <div
             style={{
               display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))",
@@ -275,7 +305,9 @@ export default function ListView({
                 onClick={() => setDiscountOnly(true)}
               />
             )}
-            {sortByStoreLayout(categories).map((c) => {
+            {sortByStoreLayout(categories)
+              .filter((c) => (categoryGroup === "food" ? FOOD_CATEGORIES.has(c) : !FOOD_CATEGORIES.has(c)))
+              .map((c) => {
               const style = CATEGORY_STYLE[c] ?? DEFAULT_CATEGORY_STYLE;
               return (
                 <CategoryCard
