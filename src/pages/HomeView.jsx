@@ -149,10 +149,23 @@ export default function HomeView({
           style={{
             display: "flex", alignItems: "center", gap: 8, background: "#eff6ff",
             border: "1px solid #93c5fd", borderRadius: 999, padding: "8px 14px", marginBottom: 14,
+            overflow: "hidden",
           }}
         >
+          <style>{`
+            @keyframes discountFadeIn {
+              from { opacity: 0; transform: translateY(6px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
           <TrendingDown size={15} color="#2563eb" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: "#1e40af", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span
+            key={discountIndex}
+            style={{
+              fontSize: 13, color: "#1e40af", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis",
+              whiteSpace: "nowrap", animation: "discountFadeIn 0.4s ease",
+            }}
+          >
             {currentDiscountProduct.name} 最大{currentDiscountProduct.pct}%引き
           </span>
         </div>
