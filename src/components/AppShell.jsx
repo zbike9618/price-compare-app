@@ -1,9 +1,10 @@
-import { ShoppingCart, List, MapPin, Star, LogIn, LogOut, HelpCircle } from "lucide-react";
+import { Home, ShoppingCart, List, MapPin, Star, LogIn, LogOut, HelpCircle } from "lucide-react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import AuthForm from "./AuthForm.jsx";
 import { ACCENT, ACCENT_LIGHT } from "../lib/theme.js";
 
 const NAV_ITEMS = [
+  { id: "home", label: "ホーム", icon: Home },
   { id: "list", label: "最安値", icon: List },
   { id: "cart", label: "比較", icon: ShoppingCart },
   { id: "map", label: "地図", icon: MapPin },
