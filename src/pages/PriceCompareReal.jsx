@@ -6,6 +6,7 @@ import { computeDiscountInfo, computeStoreDiscountRates, isPriceDrop, isRecentPr
 import { productKey } from "../lib/cartKeys.js";
 import { haversineDistanceKm, loadRangeSetting, saveRangeSetting } from "../lib/geo.js";
 import { BUILTIN_PRESETS, loadCustomPresets, saveCustomPreset, deleteCustomPreset } from "../lib/presets.js";
+import { loadCart, saveCart } from "../lib/cartStorage.js";
 import { hasSeenOnboarding } from "../lib/onboarding.js";
 import { dismissDrops, dropSignature, isDropDismissed } from "../lib/notifications.js";
 import { getMonthlySavings } from "../lib/savings.js";
@@ -36,7 +37,7 @@ export default function PriceCompareReal() {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("priceAsc");
   const [activeCategory, setActiveCategory] = useState(null);
-  const [cart, setCart] = useState(() => new Set());
+  const [cart, setCart] = useState(() => loadCart());
   const [cartSearch, setCartSearch] = useState("");
   const [customPresets, setCustomPresets] = useState(() => loadCustomPresets());
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -261,6 +262,10 @@ export default function PriceCompareReal() {
     }
     return categories.filter((c) => groups.has(c)).map((c) => ({ category: c, items: groups.get(c) }));
   }, [productsInRange, query, activeCategory, sortBy, categories]);
+
+  useEffect(() => {
+    saveCart(cart);
+  }, [cart]);
 
   const toggleCartKey = (key) => {
     setCart((prev) => {
