@@ -1,5 +1,5 @@
 // src/pages/HomeView.jsx
-import { List, ShoppingCart, MapPin, Star, TrendingDown, Percent, LogIn, LogOut, HelpCircle } from "lucide-react";
+import { List, ShoppingCart, MapPin, Star, TrendingDown, Percent, LogIn, LogOut, HelpCircle, Navigation } from "lucide-react";
 import { yen } from "../lib/format.js";
 import { ACCENT } from "../lib/theme.js";
 
@@ -14,6 +14,11 @@ export default function HomeView({
   onRequestAuth,
   onSignOut,
   onRequestOnboarding,
+  showGeoPrompt,
+  geoRequesting,
+  geoError,
+  onAllowGeo,
+  onDismissGeoPrompt,
 }) {
   const cards = [
     { id: "discountRanking", label: "値引き率が高い順で見る", icon: TrendingDown, onClick: onViewDiscountRanking, tourId: null },
@@ -33,6 +38,53 @@ export default function HomeView({
 
   return (
     <div>
+      {showGeoPrompt && (
+        <div
+          style={{
+            display: "flex", alignItems: "flex-start", gap: 12, background: "#fff",
+            border: "1px solid #e2e8f0", borderRadius: 16, padding: "16px 18px", marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              width: 40, height: 40, borderRadius: 12, background: "#eff6ff",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}
+          >
+            <Navigation size={19} color="#2563eb" strokeWidth={2.2} />
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>近くのお店を自動で選びますか？</div>
+            <div style={{ fontSize: 13.5, color: "#64748b", lineHeight: 1.7, marginBottom: 12 }}>
+              位置情報を使うと、地図で範囲を選ぶ手間なく近くのお店の値段をすぐ比べられます。あとから地図タブでいつでも変更できます。
+            </div>
+            {geoError && (
+              <div style={{ fontSize: 13, color: "#dc2626", marginBottom: 10 }}>{geoError}</div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={onAllowGeo}
+                disabled={geoRequesting}
+                style={{
+                  border: "none", borderRadius: 10, padding: "9px 16px", background: ACCENT, color: "#fff",
+                  fontSize: 14, fontWeight: 700, opacity: geoRequesting ? 0.6 : 1,
+                }}
+              >
+                {geoRequesting ? "取得中…" : "位置情報を許可する"}
+              </button>
+              <button
+                type="button"
+                onClick={onDismissGeoPrompt}
+                style={{ border: "none", background: "transparent", color: "#64748b", fontSize: 14, padding: "9px 4px" }}
+              >
+                あとで
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {monthlySavings > 0 && (
         <div
           style={{

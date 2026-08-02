@@ -45,21 +45,32 @@ export default function PriceCompareReal() {
   const [dismissedVersion, setDismissedVersion] = useState(0);
   const [discountOnly, setDiscountOnly] = useState(false);
   const [storeFilter, setStoreFilter] = useState(null);
+  const [geoPromptDismissed, setGeoPromptDismissed] = useState(false);
+  const [geoRequesting, setGeoRequesting] = useState(false);
+  const [geoError, setGeoError] = useState(null);
 
-  // 範囲が未設定なら、ホーム表示時に一度だけ現在地を取得して範囲設定を済ませる（地図タブでの手動設定をスキップ）
-  useEffect(() => {
-    if (rangeSetting) return;
-    if (!window.isSecureContext || !navigator.geolocation) return;
+  // 説明もなくいきなりブラウザの位置情報許可ダイアログを出すと不安になるため、
+  // Zの明示的な「許可する」操作を経てから navigator.geolocation を呼ぶ
+  const requestCurrentLocation = () => {
+    setGeoError(null);
+    if (!window.isSecureContext || !navigator.geolocation) {
+      setGeoError("この端末・接続では現在地を取得できません。地図タブから範囲を手動で選んでください");
+      return;
+    }
+    setGeoRequesting(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const next = { center: { lat: pos.coords.latitude, lng: pos.coords.longitude }, radiusKm: 3 };
         saveRangeSetting(next);
         setRangeSetting(next);
+        setGeoRequesting(false);
       },
-      () => {} // 拒否・失敗時は何もしない。地図タブでの手動設定に任せる
+      () => {
+        setGeoRequesting(false);
+        setGeoError("現在地を取得できませんでした。地図タブから範囲を手動で選んでください");
+      }
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
   useEffect(() => {
     (async () => {
@@ -447,6 +458,11 @@ export default function PriceCompareReal() {
           onRequestAuth={() => setShowAuthForm(true)}
           onSignOut={signOut}
           onRequestOnboarding={() => setShowOnboarding(true)}
+          showGeoPrompt={!rangeSetting && !geoPromptDismissed}
+          geoRequesting={geoRequesting}
+          geoError={geoError}
+          onAllowGeo={requestCurrentLocation}
+          onDismissGeoPrompt={() => setGeoPromptDismissed(true)}
         />
       )}
 
